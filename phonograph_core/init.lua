@@ -1,3 +1,6 @@
+-- phonograph/phonograph_core/init.lua
+-- Nodes, registerations, mechanics
+--[[
     Phonograph: Play music from albums
     Copyright (C) 2024  1F616EMO
 
@@ -14,3 +17,23 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+]]
+
+phonograph = {}
+phonograph.internal = {
+    logger = logging.logger("phonograph.core"),
+    S = minetest.get_translator("phonograph_core")
+}
+
+
+local MP = minetest.get_modpath("phonograph_core")
+for _, name in ipairs({
+    "registrations",
+    "functions", -- depends: registrations
+    "gui", -- depends: functions, registrations
+    "node", -- depends: gui
+}) do
+    dofile(MP .. "/src/" .. name .. ".lua")
+end
+
+phonograph.internal = nil
