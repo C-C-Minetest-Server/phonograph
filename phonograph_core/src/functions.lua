@@ -31,7 +31,6 @@ phonograph.phonographs = {}
 function phonograph.get_parameters(pos)
     return {
         pos = pos,
-        max_hear_distance = 20,
         loop = true,
     }
 end
@@ -48,6 +47,22 @@ function phonograph.check_handle(pos)
         if phonograph.phonographs[hash] then
             logger:action(("Phonograph at %s no longer exists. Cutting its audio out."):format(PS(pos)))
             minetest.sound_stop(phonograph.phonographs[hash].handle)
+            phonograph.phonographs[hash] = nil
+        end
+        return
+    end
+
+    local pause = true
+    for _, object in ipairs(minetest.get_objects_inside_radius(pos, 32)) do
+        if object:is_player() then
+            pause = false
+            break
+        end
+    end
+    if pause then
+        if phonograph.phonographs[hash] then
+            logger:action(("Phonograph at %s is unloaded, pausing it."):format(PS(pos)))
+            minetest.sound_fade(phonograph.phonographs[hash].handle, 0.5, 0)
             phonograph.phonographs[hash] = nil
         end
         return
@@ -94,11 +109,12 @@ function phonograph.check_handle(pos)
 end
 
 -- Restart unloaded phonographs
-minetest.register_lbm({
+minetest.register_abm({
     label = "Restart unloaded phonographs",
     name = "phonograph_core:restart_phonographs",
     nodenames = { "phonograph:phonograph" },
-    run_at_every_load = true,
+    chance = 1,
+    interval = 5,
     action = function(pos)
         phonograph.check_handle(pos)
     end
@@ -109,17 +125,13 @@ do
     local function loop()
         for hash, data in pairs(phonograph.phonographs) do
             local pos = minetest.get_position_from_hash(hash)
-            if not minetest.get_node_or_nil(pos) then
-                logger:action(("Phonograph at %s is unloaded, pausing it."):format(PS(pos)))
-                minetest.sound_fade(data.handle, 0.5, 0)
-                phonograph.phonographs[hash] = nil
-            end
+            phonograph.check_handle(pos)
         end
 
-        minetest.after(60, loop)
+        minetest.after(5, loop)
     end
 
-    minetest.after(10, loop)
+    minetest.after(5, loop)
 end
 
 -- Return true if a player can interact with that phonograph
