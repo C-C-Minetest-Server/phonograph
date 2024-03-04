@@ -61,10 +61,14 @@ minetest.register_node(":phonograph:phonograph", {
     tiles = { "phonograph_node_temp.png" },
     groups = groups,
     sounds = sounds,
+    on_construct = function(pos)
+        local meta = minetest.get_meta(pos)
+        meta:set_string("infotext", S("Idle Phonograph"))
+    end,
+    on_destruct = function(pos)
+        phonograph.stop_phonograph(pos)
+    end,
     on_rightclick = function(pos, node, player)
         phonograph.node_gui:show(player, { pos = pos })
-    end,
-    after_destruct = function(pos)
-        phonograph.check_handle(pos)
     end,
 })

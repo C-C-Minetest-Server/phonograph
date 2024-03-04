@@ -21,118 +21,136 @@
 ]]
 
 local logger = phonograph.internal.logger:sublogger("functions")
+local S = phonograph.internal.S
 local PS = minetest.pos_to_string
 
--- key: Coordinate hash
--- value: { curr_song = id, handle = handle }
-phonograph.phonographs = {}
+-- key: player name
+-- value: { <coord_hash> = { curr_song = <song_id>, handle = <handle> } }
+phonograph.players = {}
 
 -- Return the sound parameter table for a phonograph
-function phonograph.get_parameters(pos)
+function phonograph.get_parameters(pos, name)
     return {
         pos = pos,
         loop = true,
+        to_player = name,
     }
 end
 
--- Check the status of the playing handle of a phonograph
--- 1. If no songs is set: fade the existing one out if any
--- 2. If song set but is not the one played: fade the existing one and play the new one
--- 3. If song set and nothing is playing: play the new opne
--- 4. If song set and is the same as the one played: Do nothing and quit
-function phonograph.check_handle(pos)
+-- Cut out the audio of a phonograph immediately
+function phonograph.stop_phonograph(pos)
     local hash = minetest.hash_node_position(pos)
-    local node = minetest.get_node(pos)
-    if node.name ~= "phonograph:phonograph" then
-        if phonograph.phonographs[hash] then
-            logger:action(("Phonograph at %s no longer exists. Cutting its audio out."):format(PS(pos)))
-            minetest.sound_stop(phonograph.phonographs[hash].handle)
-            phonograph.phonographs[hash] = nil
-        end
-        return
-    end
-
-    local pause = true
-    for _, object in ipairs(minetest.get_objects_inside_radius(pos, 32)) do
-        if object:is_player() then
-            pause = false
-            break
+    for name, data in pairs(phonograph.players) do
+        if data[hash] then
+            logger:action(("Phonograph at %s no longer exists, stopping audio for %s"):format(
+                PS(pos), name
+            ))
+            minetest.sound_stop(data[hash].handle)
+            data[hash] = nil
         end
     end
-    if pause then
-        if phonograph.phonographs[hash] then
-            logger:action(("Phonograph at %s is unloaded, pausing it."):format(PS(pos)))
-            minetest.sound_fade(phonograph.phonographs[hash].handle, 0.5, 0)
-            phonograph.phonographs[hash] = nil
-        end
-        return
-    end
-
-    local meta = minetest.get_meta(pos)
-    local meta_curr_song = meta:get_string("curr_song")
-
-    -- If no songs is set (or one was unset)
-    if meta_curr_song == "" then
-        if phonograph.phonographs[hash] then
-            logger:action(("Phonograph at %s is playing sound without songs set, fading it out."):format(PS(pos)))
-            minetest.sound_fade(phonograph.phonographs[hash].handle, 0.5, 0)
-            phonograph.phonographs[hash] = nil
-        end
-        return
-    end
-
-    if phonograph.phonographs[hash] then
-        if phonograph.phonographs[hash].curr_song == meta_curr_song then
-            -- Nothing to do; quitting
-            return
-        end
-
-        -- Reaching this means a mismatch between handler and metadata
-        logger:action(("Phonograph at %s is playing %s but the new one is %s. Fading the old one out."):format(
-            PS(pos), phonograph.phonographs[hash].curr_song, meta_curr_song
-        ))
-        minetest.sound_fade(phonograph.phonographs[hash].handle, 0.5, 0)
-    end
-
-    if not phonograph.registered_songs[meta_curr_song] then
-        logger:action(("Phonograph at %s attempts to play %s but it is not avaliable."):format(
-            PS(pos), meta_curr_song
-        ))
-        return
-    end
-
-    logger:action(("Playing %s on phonograph at %s"):format(meta_curr_song, PS(pos)))
-    phonograph.phonographs[hash] = {
-        curr_song = meta_curr_song,
-        handle = minetest.sound_play(phonograph.registered_songs[meta_curr_song].spec, phonograph.get_parameters(pos))
-    }
 end
 
--- Restart unloaded phonographs
-minetest.register_abm({
-    label = "Restart unloaded phonographs",
-    name = "phonograph_core:restart_phonographs",
-    nodenames = { "phonograph:phonograph" },
-    chance = 1,
-    interval = 5,
-    action = function(pos)
-        phonograph.check_handle(pos)
-    end
-})
+local passed = 0
+minetest.register_globalstep(function(dtime)
+    passed = passed + dtime
+    if passed < 0.5 then return end
+    passed = 0
 
--- Pause phonographs in unloaded mapblocks
-do
-    local function loop()
-        for hash, data in pairs(phonograph.phonographs) do
-            local pos = minetest.get_position_from_hash(hash)
-            phonograph.check_handle(pos)
+    for _, player in ipairs(minetest.get_connected_players()) do
+        local name = player:get_player_name()
+        local ppos = player:get_pos()
+        local checked = {}
+
+        if phonograph.players[name] then
+            for hash, data in pairs(phonograph.players[name]) do
+                checked[hash] = true
+                local pos = minetest.get_position_from_hash(hash)
+
+                local node = minetest.get_node(pos)
+                if math.hypot(pos.x - ppos.x, pos.y - ppos.y) > 32 then -- Check if the player is too far away
+                    logger:action(("Player %s is too far away from phonograph at %s, fading audio."):format(
+                        name, PS(pos)
+                    ))
+                    minetest.sound_fade(data.handle, 0.5, 0)
+                    phonograph.players[name][hash] = nil
+                elseif node.name ~= "phonograph:phonograph" then -- Check if that node is still a phonograph
+                    logger:action(("Phonograph at %s no longer exists, fading audio for %s"):format(
+                        PS(pos), name
+                    ))
+                    minetest.sound_fade(data.handle, 0.5, 0)
+                    phonograph.players[name][hash] = nil
+                else
+                    -- Check if the song played is still the same
+                    local meta = minetest.get_meta(pos)
+                    local meta_curr_song = meta:get_string("curr_song")
+                    if meta_curr_song == "" then
+                        logger:action(("Phonograph at %s is not playing anything, fading audio for %s"):format(
+                            PS(pos), name
+                        ))
+                        minetest.sound_fade(data.handle, 0.5, 0)
+                        phonograph.players[name][hash] = nil
+                    elseif meta_curr_song ~= data.curr_song then
+                        minetest.sound_fade(data.handle, 0.5, 0)
+                        local song = phonograph.registered_songs[meta_curr_song]
+                        if not song then
+                            logger:action(("Phonograph at %s is playing %s but it is not avaliable, " ..
+                                "fading audio for %s"):format(
+                                PS(pos), meta_curr_song, name
+                            ))
+                            minetest.sound_fade(data.handle, 0.5, 0)
+                            phonograph.players[name][hash] = nil
+                        else
+                            logger:action(("Phonograph at %s is playing %s, changing the audio of %s"):format(
+                                PS(pos), meta_curr_song, name
+                            ))
+                            data.curr_song = meta_curr_song
+                            data.handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, name))
+                        end
+                    end
+                end
+            end
         end
-
-        minetest.after(5, loop)
+        local pos1 = vector.add(ppos, 15)
+        local pos2 = vector.add(ppos, -15)
+        for _, pos in ipairs(minetest.find_nodes_in_area(pos1, pos2, "phonograph:phonograph", false)) do
+            local hash = minetest.hash_node_position(pos)
+            if not checked[hash] then
+                -- Check if sound is actually playing
+                local meta = minetest.get_meta(pos)
+                local meta_curr_song = meta:get_string("curr_song")
+                if meta_curr_song ~= "" then
+                    local song = phonograph.registered_songs[meta_curr_song]
+                    if not song then
+                        logger:action(("Phonograph at %s is playing %s but it is not avaliable, " ..
+                            "playing for %s failed"):format(
+                            PS(pos), meta_curr_song, name
+                        ))
+                    else
+                        logger:action(("Phonograph at %s is playing %s, playing for %s"):format(
+                            PS(pos), meta_curr_song, name
+                        ))
+                        phonograph.players[name] = phonograph.players[name] or {}
+                        phonograph.players[name][hash] = {
+                            curr_song = meta_curr_song,
+                            handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, name)),
+                        }
+                    end
+                end
+            end
+        end
     end
+end)
 
-    minetest.after(5, loop)
-end
+-- remove sound handlers on leave
+minetest.register_on_leaveplayer(function(player)
+    local name = player:get_player_name()
+    logger:action(("Player %s leaving, removing handler reference."):format(
+        PS(pos), meta_curr_song, name
+    ))
+    phonograph.players[name] = nil
+end)
+
 
 -- Return true if a player can interact with that phonograph
 function phonograph.check_interact_privs(name, pos)
@@ -150,4 +168,18 @@ function phonograph.check_interact_privs(name, pos)
     end
 
     return true
+end
+
+function phonograph.update_meta(meta)
+    local curr_song = meta:get_string("curr_song")
+    if curr_song == "" then
+        meta:set_string("infotext", S("Idle Phonograph"))
+    else
+        local song = phonograph.registered_songs[curr_song]
+        if song then
+            meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
+        else
+            meta:set_string("infotext", S("Idle Phonograph") .. "\n" .. S("Invalid soundtrack"))
+        end
+    end
 end

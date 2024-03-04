@@ -152,7 +152,7 @@ local get_page_content = {
 
                             local meta = minetest.get_meta(ctx.pos)
                             meta:set_string("curr_song", "")
-                            phonograph.check_handle(ctx.pos)
+                            phonograph.update_meta(meta)
 
                             return true
                         end,
@@ -166,7 +166,7 @@ local get_page_content = {
 
                             local meta = minetest.get_meta(ctx.pos)
                             meta:set_string("curr_song", ctx.selected_song)
-                            phonograph.check_handle(ctx.pos)
+                            phonograph.update_meta(meta)
 
                             return true
                         end

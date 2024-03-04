@@ -1,9 +1,25 @@
 # textdomain: phonograph_core
 
+##[ src/functions.lua ]##
+Playing: @1=
+Invalid soundtrack=
+
+##[ src/functions.lua ]##
+##[ src/gui.lua ]##
+Untitled=
+
+##[ src/functions.lua ]##
+##[ src/gui.lua ]##
+##[ src/node.lua ]##
+Phonograph=
+
+##[ src/functions.lua ]##
+##[ src/node.lua ]##
+Idle Phonograph=
+
 ##[ src/gui.lua ]##
 Select an album to start exploring the universe of songs=
 ERROR: Album @1 not found.=
-Untitled=
 Unknown artist=
 No descriptions given.=
 ERROR: Song @1 not found.=
@@ -11,7 +27,3 @@ Stop=
 Play=
 ERROR: The node at @1 is not a phonograph.=
 Exit=
-
-##[ src/gui.lua ]##
-##[ src/node.lua ]##
-Phonograph=
