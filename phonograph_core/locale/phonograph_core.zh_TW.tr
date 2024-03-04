@@ -1,0 +1,29 @@
+# textdomain: phonograph_core
+
+##[ src/functions.lua ]##
+Playing: @1=正在播放：@1
+Invalid soundtrack=無效的音軌
+
+##[ src/functions.lua ]##
+##[ src/gui.lua ]##
+Untitled=未命名
+
+##[ src/functions.lua ]##
+##[ src/gui.lua ]##
+##[ src/node.lua ]##
+Phonograph=留聲機
+
+##[ src/functions.lua ]##
+##[ src/node.lua ]##
+Idle Phonograph=閒置的留聲機
+
+##[ src/gui.lua ]##
+Select an album to start exploring the universe of songs=探尋音樂的世界，從選擇專輯開始。
+ERROR: Album @1 not found.=錯誤：找不到專輯 @1
+Unknown artist=未知的藝人
+No descriptions given.=沒有描述。
+ERROR: Song @1 not found.=錯誤：找不到音軌 @1
+Stop=停止
+Play=播放
+ERROR: The node at @1 is not a phonograph.=錯誤：位於 @1 的方塊並非留聲機。
+Exit=離開
