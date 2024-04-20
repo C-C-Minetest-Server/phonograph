@@ -146,7 +146,7 @@ end)
 minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     logger:action(("Player %s leaving, removing handler reference."):format(
-        PS(pos), meta_curr_song, name
+        name
     ))
     phonograph.players[name] = nil
 end)
