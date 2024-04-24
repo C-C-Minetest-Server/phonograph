@@ -51,6 +51,10 @@ function phonograph.stop_phonograph(pos)
     end
 end
 
+local function pos_dist(pos1, pos2)
+    return math.sqrt((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2 + (pos1.z - pos2.z)^2)
+end
+
 local passed = 0
 minetest.register_globalstep(function(dtime)
     passed = passed + dtime
@@ -68,7 +72,7 @@ minetest.register_globalstep(function(dtime)
                 local pos = minetest.get_position_from_hash(hash)
 
                 local node = minetest.get_node(pos)
-                if math.hypot(pos.x - ppos.x, pos.y - ppos.y) > 32 then -- Check if the player is too far away
+                if pos_dist(pos, ppos) > 32 then -- Check if the player is too far away
                     logger:action(("Player %s is too far away from phonograph at %s, fading audio."):format(
                         name, PS(pos)
                     ))
