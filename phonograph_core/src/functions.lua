@@ -162,7 +162,7 @@ function phonograph.check_interact_privs(name, pos)
         name = name:get_player_name()
     end
 
-    if minetest.is_protected(pos, name) and not minetest.check_player_privs(name { protection_bypass = true }) then
+    if minetest.is_protected(pos, name) and not minetest.check_player_privs(name, { protection_bypass = true }) then
         return false
     end
 
