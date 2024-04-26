@@ -1,4 +1,4 @@
-# Phonograph API Documentation
+# Phonograph Developer Documentation
 
 ## Album registeration
 
@@ -42,4 +42,18 @@ phonograph.register_song("phonograph_album_white:album_white:white", {
         gain = 0.3
     }
 })
+```
+
+## Preparation of soundtracks
+
+According to the [Minetest API Documentation](https://github.com/minetest/minetest/blob/master/doc/lua_api.md#sounds), only single-channel OGG Vorbis files are supported. You should prepend around 3 seconds of silence before the song starts to avoid timing problems when switching or repeating the track.
+
+This script can convert any soundtrack (stereo or mono) into a mono OGG meeting the above recommendations:
+
+```bash
+INPUT="YOUR-INPUT.wav"
+OUTPUT="OUTPUT.ogg"
+ffmpeg -f lavfi -t 3 -i anullsrc=channel_layout=mono \
+    -i "$INPUT" -ac 1 \
+    -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1" "$OUTPUT"
 ```
