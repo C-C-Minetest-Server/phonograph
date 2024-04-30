@@ -23,14 +23,27 @@
 local logger = phonograph.internal.logger:sublogger("node")
 local S = phonograph.internal.S
 
--- A must-work group (cf. Void game)
-local groups = { oddly_breakable_by_hand = 3 }
-local sounds = nil
+local def = {
+    description = S("Phonograph"),
+    tiles = { "phonograph_node_temp.png" },
+    groups = { oddly_breakable_by_hand = 3 }, -- A must-work group (cf. Void game)
+    sounds = sounds,
+    on_construct = function(pos)
+        local meta = minetest.get_meta(pos)
+        meta:set_string("infotext", S("Idle Phonograph"))
+    end,
+    on_destruct = function(pos)
+        phonograph.stop_phonograph(pos)
+    end,
+    on_rightclick = function(pos, node, player)
+        phonograph.node_gui:show(player, { pos = pos })
+    end,
+}
 if minetest.get_modpath("default") then
     -- Use Minetest Game groups
     logger:action("Using Minetest Game node definitions and crafting recipies.")
-    groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
-    sounds = default.node_sound_wood_defaults()
+    def.groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
+    def.sounds = default.node_sound_wood_defaults()
 
     minetest.register_craft({
         output = "phonograph:phonograph",
@@ -43,8 +56,8 @@ if minetest.get_modpath("default") then
 elseif minetest.get_modpath("hades_core") and minetest.get_modpath("hades_sounds") then
     -- Use Hades Revisited groups
     logger:action("`Using Hades Revisited node definitions and crafting recipies.")
-    groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
-    sounds = hades_sounds.node_sound_wood_defaults()
+    def.groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
+    def.sounds = hades_sounds.node_sound_wood_defaults()
 
     minetest.register_craft({
         output = "phonograph:phonograph",
@@ -56,19 +69,4 @@ elseif minetest.get_modpath("hades_core") and minetest.get_modpath("hades_sounds
     })
 end
 
-minetest.register_node(":phonograph:phonograph", {
-    description = S("Phonograph"),
-    tiles = { "phonograph_node_temp.png" },
-    groups = groups,
-    sounds = sounds,
-    on_construct = function(pos)
-        local meta = minetest.get_meta(pos)
-        meta:set_string("infotext", S("Idle Phonograph"))
-    end,
-    on_destruct = function(pos)
-        phonograph.stop_phonograph(pos)
-    end,
-    on_rightclick = function(pos, node, player)
-        phonograph.node_gui:show(player, { pos = pos })
-    end,
-})
+minetest.register_node(":phonograph:phonograph", def)

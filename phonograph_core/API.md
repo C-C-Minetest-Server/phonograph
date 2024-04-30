@@ -53,7 +53,5 @@ This script can convert any soundtrack (stereo or mono) into a mono OGG meeting 
 ```bash
 INPUT="YOUR-INPUT.wav"
 OUTPUT="OUTPUT.ogg"
-ffmpeg -f lavfi -t 3 -i anullsrc=channel_layout=mono \
-    -i "$INPUT" -ac 1 \
-    -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1" "$OUTPUT"
+ffmpeg -f lavfi -t 3 -i "anullsrc=channel_layout=mono:sample_rate=$(ffmpeg -i "$INPUT" 2>&1 | grep -oP '([0-9]+) Hz' | awk '{print $1}')" -i "$INPUT" -ac 1 -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[outa]" -map "[outa]" -map_metadata 1 "$OUTPUT"
 ```
