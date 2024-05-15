@@ -11,6 +11,7 @@ Untitled=未命名
 ##[ src/functions.lua ]##
 ##[ src/gui.lua ]##
 ##[ src/node.lua ]##
+##[ src/teacher.lua ]##
 Phonograph=留声机
 
 ##[ src/functions.lua ]##
@@ -27,3 +28,7 @@ Stop=停止
 Play=播放
 ERROR: The node at @1 is not a phonograph.=错误：位于 @1 的方块并非留声机。
 Exit=离开
+
+##[ src/teacher.lua ]##
+The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=
+Right-click a Phonograph to set its soundtrack. After selecting the soundtrack from the left panels, press "Play" to start the track.=
