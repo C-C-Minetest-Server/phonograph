@@ -30,8 +30,9 @@ local MP = minetest.get_modpath("phonograph_core")
 for _, name in ipairs({
     "registrations",
     "functions", -- depends: registrations
-    "gui", -- depends: functions, registrations
-    "node", -- depends: gui
+    "gui",       -- depends: functions, registrations
+    "node",      -- depends: gui
+    "teacher",
 }) do
     dofile(MP .. "/src/" .. name .. ".lua")
 end
