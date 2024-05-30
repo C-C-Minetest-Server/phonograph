@@ -197,7 +197,7 @@ local generate_albums_list = function(player, ctx)
         }
     end
     button_list.name = "svb_album_list"
-    button_list.w = 5
+    button_list.w = 5.3
     button_list.h = 9
     return gui.ScrollableVBox(button_list)
 end
@@ -216,7 +216,7 @@ local generate_songs_list = function(player, ctx)
         }
     end
     button_list.name = "svb_songs_list"
-    button_list.w = 3
+    button_list.w = 4.5
     button_list.h = 9
     return gui.ScrollableVBox(button_list)
 end
