@@ -27,7 +27,6 @@ local def = {
     description = S("Phonograph"),
     tiles = { "phonograph_node_temp.png" },
     groups = { oddly_breakable_by_hand = 3 }, -- A must-work group (cf. Void game)
-    sounds = sounds,
     on_construct = function(pos)
         local meta = minetest.get_meta(pos)
         meta:set_string("infotext", S("Idle Phonograph"))
