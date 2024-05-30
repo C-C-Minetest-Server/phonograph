@@ -57,7 +57,7 @@ local get_page_content = {
         end
 
         return gui.VBox {
-            min_h = 9, min_w = 6,
+            min_h = 9, min_w = 8,
             gui.HBox {
                 gui.Image {
                     w = 2, h = 2,
@@ -76,8 +76,8 @@ local get_page_content = {
                 },
             },
             gui.Textarea {
+                max_w = 5.5, w = 5.5, h = 6,
                 label = album.long_description or S("No descriptions given."),
-                expand = true,
             }
         }
     end,
@@ -139,6 +139,7 @@ local get_page_content = {
                     },
                 },
                 gui.Textarea {
+                    max_w = 5.5, w = 5.5, h = 6,
                     label = song.long_description or S("No descriptions given."),
                 },
                 phonograph.check_interact_privs(player, ctx.pos) and (
@@ -178,7 +179,8 @@ local get_page_content = {
 
 local generate_albums_list = function(player, ctx)
     local button_list = {}
-    for name, def in pairs(phonograph.registered_albums) do
+    for _, name in pairs(phonograph.registered_albums_keys) do
+        local def = phonograph.registered_albums[name]
         button_list[#button_list+1] = gui.HBox {
             gui.Image {
                 w = 1, h = 1,
