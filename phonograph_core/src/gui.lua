@@ -207,8 +207,8 @@ local generate_songs_list = function(player, ctx)
     for _, name in ipairs(phonograph.songs_in_album[ctx.selected_album] or {}) do
         local def = phonograph.registered_songs[name]
         button_list[#button_list+1] = gui.Button {
-            w = 3, h = 1,
-            label = def.title or S("Untitled"),
+            w = 4, h = 1,
+            label = def.short_title or def.title or S("Untitled"),
             on_event = function(player, ctx)
                 ctx.selected_song = name
                 return true
