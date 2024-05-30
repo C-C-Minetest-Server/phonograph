@@ -187,7 +187,7 @@ local generate_albums_list = function(player, ctx)
             },
             gui.Button {
                 w = 4,
-                label = def.title or S("Untitled"),
+                label = def.short_title or def.title or S("Untitled"),
                 on_event = function(player, ctx)
                     ctx.selected_album = name
                     ctx.selected_song = nil

@@ -2,6 +2,7 @@
 
 ##[ init.lua ]##
 World of White=
+Wonders of Randoms: World of White=
 Relaxing noises for testing purpose=
 Oh, so relaxing! A bug-free world starts from a test case.=
 Pure White Noise=

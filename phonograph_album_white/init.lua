@@ -22,7 +22,8 @@
 local S = minetest.get_translator("phonograph_album_white")
 
 local album = phonograph.register_album("phonograph_album_white:album_white", {
-    title = S("World of White"),
+    short_title = S("World of White"),
+    title = S("Wonders of Randoms: World of White"),
     short_description = S("Relaxing noises for testing purpose"),
     long_description = S("Oh, so relaxing! A bug-free world starts from a test case."),
     cover = "phonograph_album_white_cover.png",

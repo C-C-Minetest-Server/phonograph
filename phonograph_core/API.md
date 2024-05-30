@@ -5,7 +5,8 @@
 ```lua
 -- Modified from phonograph_album_white code
 local album = phonograph.register_album("phonograph_album_white:album_white", {
-    title = "World of White",
+    short_title = "World of White",
+    title = "Wonders of Randoms: World of White",
     short_description = "Relaxing noises for testing purpose",
     long_description = "Oh, so relaxing! A bug-free world starts from a test case.",
     cover = "phonograph_album_white_cover.png",
