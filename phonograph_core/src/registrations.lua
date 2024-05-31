@@ -132,6 +132,5 @@ minetest.register_on_mods_loaded(function()
     for key, _ in pairs(phonograph.registered_albums) do
         phonograph.registered_albums_keys[#phonograph.registered_albums_keys+1] = key
     end
-
     table.sort(phonograph.registered_albums_keys)
 end)
