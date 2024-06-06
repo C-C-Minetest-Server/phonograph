@@ -183,10 +183,11 @@ function phonograph.update_meta(meta)
         meta:set_string("song_artist", "")
     else
         local song = phonograph.registered_songs[curr_song]
+        local album = phonograph.registered_albums[song.album] or {}
         if song then
             meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
-            meta:set_string("song_title", song.title or "Untitled")
-            meta:set_string("song_artist", song.artist or "Unknown artist")
+            meta:set_string("song_title", minetest.get_translated_string("en", song.title or "Untitled"))
+            meta:set_string("song_artist", minetest.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
         else
             meta:set_string("infotext", S("Idle Phonograph") .. "\n" .. S("Invalid soundtrack"))
             meta:set_string("song_title", "")
