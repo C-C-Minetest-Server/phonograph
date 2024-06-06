@@ -52,7 +52,7 @@ function phonograph.stop_phonograph(pos)
 end
 
 local function pos_dist(pos1, pos2)
-    return math.sqrt((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2 + (pos1.z - pos2.z)^2)
+    return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2 + (pos1.z - pos2.z) ^ 2)
 end
 
 local passed = 0
@@ -176,14 +176,27 @@ end
 
 function phonograph.update_meta(meta)
     local curr_song = meta:get_string("curr_song")
+
     if curr_song == "" then
         meta:set_string("infotext", S("Idle Phonograph"))
+        meta:set_string("song_title", "")
+        meta:set_string("song_artist", "")
     else
         local song = phonograph.registered_songs[curr_song]
         if song then
             meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
+            meta:set_string("song_title", song.title or "Untitled")
+            meta:set_string("song_artist", song.artist or "Unknown artist")
         else
             meta:set_string("infotext", S("Idle Phonograph") .. "\n" .. S("Invalid soundtrack"))
+            meta:set_string("song_title", "")
+            meta:set_string("song_artist", "")
         end
     end
+
+    meta:mark_as_private({
+        "curr_song",
+        "song_title",
+        "song_artist"
+    })
 end
