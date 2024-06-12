@@ -19,7 +19,7 @@ read_globals = {
     "vector",
 
     "logging", "flow", "default", "hades_sounds",
-    "teacher",
+    "teacher", "modlib",
 
     table = {
         fields = {

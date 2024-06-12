@@ -30,6 +30,7 @@ local MP = minetest.get_modpath("phonograph_core")
 for _, name in ipairs({
     "registrations",
     "functions", -- depends: registrations
+    "player",    -- depends: functions, settings
     "gui",       -- depends: functions, registrations
     "node",      -- depends: gui
     "teacher",
