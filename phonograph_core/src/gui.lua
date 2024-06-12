@@ -27,7 +27,7 @@ local S = phonograph.internal.S
 local get_page_content = {
     none = function()
         return gui.VBox {
-            min_h = 9, min_w = 6,
+            min_h = 10, min_w = 9,
             gui.Image {
                 w = 3, h = 3,
                 texture_name = "phonograph_node_temp.png",
@@ -43,7 +43,7 @@ local get_page_content = {
         local album = phonograph.registered_albums[ctx.selected_album]
         if not album then
             return gui.VBox {
-                min_h = 9, min_w = 6,
+                min_h = 10, min_w = 9,
                 gui.Image {
                     w = 3, h = 3,
                     texture_name = "phonograph_node_temp_error.png",
@@ -57,7 +57,7 @@ local get_page_content = {
         end
 
         return gui.VBox {
-            min_h = 9, min_w = 8,
+            min_h = 10, min_w = 9,
             gui.HBox {
                 gui.Image {
                     w = 2, h = 2,
@@ -65,12 +65,15 @@ local get_page_content = {
                 },
                 gui.VBox {
                     gui.Label {
+                        max_w = 6, w = 6,
                         label = album.title or S("Untitled")
                     },
                     gui.Label {
+                        max_w = 6, w = 6,
                         label = album.artist or S("Unknown artist")
                     },
                     gui.Label {
+                        max_w = 6, w = 6,
                         label = album.short_description or ""
                     },
                 },
@@ -85,13 +88,14 @@ local get_page_content = {
         local song = phonograph.registered_songs[ctx.selected_song]
         if not song then
             return gui.VBox {
-                min_h = 9, min_w = 6,
+                min_h = 10, min_w = 9,
                 gui.Image {
                     w = 3, h = 3,
                     texture_name = "phonograph_node_temp_error.png",
                     expand = true, align_h = "center", align_v = "center",
                 },
                 gui.Label {
+                    max_w = 8, w = 8,
                     label = S("ERROR: Song @1 not found.", ctx.selected_song),
                     expand = true, align_h = "center", align_v = "center",
                 }
@@ -102,13 +106,14 @@ local get_page_content = {
         local album = phonograph.registered_albums[song.album]
         if not album then
             return gui.VBox {
-                min_h = 7, min_w = 6,
+                min_h = 10, min_w = 9,
                 gui.Image {
                     w = 3, h = 3,
                     texture_name = "phonograph_node_temp_error.png",
                     expand = true, align_h = "center", align_v = "center",
                 },
                 gui.Label {
+                    max_w = 8, w = 8,
                     label = S("ERROR: Album @1 not found.", ctx.selected_album),
                     expand = true, align_h = "center", align_v = "center",
                 }
@@ -118,17 +123,20 @@ local get_page_content = {
         local meta = minetest.get_meta(ctx.pos)
 
         return gui.VBox {
-            min_h = 9, min_w = 6,
+            min_h = 10, min_w = 9,
             gui.VBox {
                 gui.HBox {
                     gui.VBox {
                         gui.Label {
+                            max_w = 6, w = 6,
                             label = song.title or S("Untitled")
                         },
                         gui.Label {
+                            max_w = 6, w = 6,
                             label = song.artist or album.artist or S("Unknown artist")
                         },
                         gui.Label {
+                            max_w = 6, w = 6,
                             label = song.short_description or ""
                         },
                     },
@@ -175,10 +183,16 @@ local get_page_content = {
     end
 }
 
-local generate_albums_list = function(_, _)
+local generate_albums_list = function(_, ctx)
     local button_list = {}
     for _, name in pairs(phonograph.registered_albums_keys) do
         local def = phonograph.registered_albums[name]
+        local title = def.short_title or def.title or S("Untitled")
+        if ctx.selected_album == name then
+            title = minetest.get_color_escape_sequence("yellow") .. title
+        elseif ctx.curr_album == name then
+            title = minetest.get_color_escape_sequence("orange") .. title
+        end
         button_list[#button_list+1] = gui.HBox {
             gui.Image {
                 w = 1, h = 1,
@@ -187,7 +201,7 @@ local generate_albums_list = function(_, _)
             },
             gui.Button {
                 w = 4,
-                label = def.short_title or def.title or S("Untitled"),
+                label = title,
                 on_event = function(_, ectx)
                     ectx.selected_album = name
                     ectx.selected_song = nil
@@ -206,9 +220,15 @@ local generate_songs_list = function(_, ctx)
     local button_list = {}
     for _, name in ipairs(phonograph.songs_in_album[ctx.selected_album] or {}) do
         local def = phonograph.registered_songs[name]
+        local title = def.short_title or def.title or S("Untitled")
+        if ctx.selected_song == name then
+            title = minetest.get_color_escape_sequence("yellow") .. title
+        elseif ctx.curr_song == name then
+            title = minetest.get_color_escape_sequence("orange") .. title
+        end
         button_list[#button_list+1] = gui.Button {
             w = 4, h = 1,
-            label = def.short_title or def.title or S("Untitled"),
+            label = title,
             on_event = function(_, ectx)
                 ectx.selected_song = name
                 return true
@@ -243,9 +263,12 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
         }
     end
 
+
+    local meta = minetest.get_meta(ctx.pos)
+    ctx.curr_song = meta:get_string("curr_song")
+    ctx.curr_album = (phonograph.registered_songs[ctx.curr_song] or {}).album or ""
     if not (ctx.selected_album or ctx.selected_song) then
-        local meta = minetest.get_meta(ctx.pos)
-        local meta_curr_song = meta:get_string("curr_song")
+        local meta_curr_song = ctx.curr_song
         if meta_curr_song ~= "" then
             ctx.selected_song = meta_curr_song
         end
