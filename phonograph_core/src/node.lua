@@ -34,7 +34,7 @@ local def = {
     on_destruct = function(pos)
         phonograph.stop_phonograph(pos)
     end,
-    on_rightclick = function(pos, node, player)
+    on_rightclick = function(pos, _, player)
         phonograph.node_gui:show(player, { pos = pos })
     end,
 }

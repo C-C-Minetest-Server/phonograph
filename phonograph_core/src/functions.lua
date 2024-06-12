@@ -20,9 +20,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ]]
 
-local logger = phonograph.internal.logger:sublogger("functions")
+-- local logger = phonograph.internal.logger:sublogger("functions")
 local S = phonograph.internal.S
-local PS = minetest.pos_to_string
 
 -- Return the sound parameter table for a phonograph
 function phonograph.get_parameters(pos, name)
@@ -70,7 +69,8 @@ function phonograph.update_meta(meta)
         if song then
             meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
             meta:set_string("song_title", minetest.get_translated_string("en", song.title or "Untitled"))
-            meta:set_string("song_artist", minetest.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
+            meta:set_string("song_artist",
+                minetest.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
         else
             meta:set_string("infotext", S("Idle Phonograph") .. "\n" .. S("Invalid soundtrack"))
             meta:set_string("song_title", "")

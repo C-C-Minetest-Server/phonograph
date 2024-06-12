@@ -25,7 +25,7 @@ local gui = flow.widgets
 local S = phonograph.internal.S
 
 local get_page_content = {
-    none = function(player, ctx)
+    none = function()
         return gui.VBox {
             min_h = 9, min_w = 6,
             gui.Image {
@@ -39,7 +39,7 @@ local get_page_content = {
             }
         }
     end,
-    album = function(player, ctx)
+    album = function(_, ctx)
         local album = phonograph.registered_albums[ctx.selected_album]
         if not album then
             return gui.VBox {
@@ -148,12 +148,11 @@ local get_page_content = {
                         w = 1.5, h = 1,
                         label = S("Stop"),
                         expand = true, align_h = "right", align_v = "bottom",
-                        on_event = function(player, ctx)
-                            if not phonograph.check_interact_privs(player, ctx.pos) then return true end
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                            local meta = minetest.get_meta(ctx.pos)
-                            meta:set_string("curr_song", "")
-                            phonograph.update_meta(meta)
+                            local emeta = minetest.get_meta(ectx.pos)
+                            phonograph.set_song(emeta, "")
 
                             return true
                         end,
@@ -162,12 +161,11 @@ local get_page_content = {
                         w = 1.5, h = 1,
                         label = S("Play"),
                         expand = true, align_h = "right", align_v = "bottom",
-                        on_event = function(player, ctx)
-                            if not phonograph.check_interact_privs(player, ctx.pos) then return true end
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                            local meta = minetest.get_meta(ctx.pos)
-                            meta:set_string("curr_song", ctx.selected_song)
-                            phonograph.update_meta(meta)
+                            local emeta = minetest.get_meta(ectx.pos)
+                            phonograph.set_song(emeta, ctx.selected_song)
 
                             return true
                         end
@@ -177,7 +175,7 @@ local get_page_content = {
     end
 }
 
-local generate_albums_list = function(player, ctx)
+local generate_albums_list = function(_, _)
     local button_list = {}
     for _, name in pairs(phonograph.registered_albums_keys) do
         local def = phonograph.registered_albums[name]
@@ -190,9 +188,9 @@ local generate_albums_list = function(player, ctx)
             gui.Button {
                 w = 4,
                 label = def.short_title or def.title or S("Untitled"),
-                on_event = function(player, ctx)
-                    ctx.selected_album = name
-                    ctx.selected_song = nil
+                on_event = function(_, ectx)
+                    ectx.selected_album = name
+                    ectx.selected_song = nil
                     return true
                 end,
             },
@@ -204,15 +202,15 @@ local generate_albums_list = function(player, ctx)
     return gui.ScrollableVBox(button_list)
 end
 
-local generate_songs_list = function(player, ctx)
+local generate_songs_list = function(_, ctx)
     local button_list = {}
     for _, name in ipairs(phonograph.songs_in_album[ctx.selected_album] or {}) do
         local def = phonograph.registered_songs[name]
         button_list[#button_list+1] = gui.Button {
             w = 4, h = 1,
             label = def.short_title or def.title or S("Untitled"),
-            on_event = function(player, ctx)
-                ctx.selected_song = name
+            on_event = function(_, ectx)
+                ectx.selected_song = name
                 return true
             end,
         }
