@@ -23,6 +23,11 @@
 local logger = phonograph.internal.logger:sublogger("player")
 local PS = minetest.pos_to_string
 
+local function vector_distance(pos1, pos2)
+    local diff = vector.subtract(pos1, pos2)
+    return math.sqrt(diff.x ^ 2 + diff.y ^ 2 + diff.z ^ 2)
+end
+
 -- key: player name
 -- value: { <coord_hash> = { curr_song = <song_id>, handle = <handle> } }
 phonograph.players = {}
@@ -70,7 +75,7 @@ modlib.minetest.register_globalstep(0.5, function()
                     ptable[hash].curr_song = meta_curr_song
                     ptable[hash].handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname))
                 end
-            elseif not ptable[hash] then
+            elseif not ptable[hash] and vector_distance(ppos, pos) <= 15 then
                 local song = phonograph.registered_songs[meta_curr_song]
                 if song then
                     logger:action(("Phonograph at %s is playing %s, playing for %s"):format(
