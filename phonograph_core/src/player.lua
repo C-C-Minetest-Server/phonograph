@@ -132,3 +132,21 @@ function phonograph.stop_phonograph(pos)
         end
     end
 end
+
+if minetest.get_modpath("background_music") then
+    -- Supress background music if active phonograph within 20m
+    -- 21~32m: NVM just let them overlay
+
+    background_music.register_on_decide_music(function(player)
+        local name = player:get_player_name()
+        local ppos = player:get_pos()
+        if phonograph.players[name] then
+            for hash in pairs(phonograph.players[name]) do
+                local pos = minetest.get_position_from_hash(hash)
+                if vector_distance(ppos, pos) <= 20 then
+                    return "null", 10000
+                end
+            end
+        end
+    end)
+end
