@@ -39,11 +39,6 @@ function phonograph.validate_song(name, def)
         )
     )
 
-    logger:assert(type(def.spec.name) == "string",
-        ("Validation of song %s failed: invalid `spec.name` field type (\"string\" expected, got \"%s\")"):format(
-            name, type(def.spec.name)
-        )
-    )
     if def.spec.gain then
         logger:assert(type(def.spec.gain) == "number",
             ("Validation of song %s failed: invalid `spec.gain` field type " ..
@@ -86,6 +81,42 @@ function phonograph.validate_song(name, def)
             )
         )
     end
+    if def.filepath then
+        logger:assert(minetest.features.dynamic_add_media_table,
+            ("Song %s in album %s is not compactible with this Minetest version. " ..
+                "Please upgrade Minetest to 5.5.0 or later versions."):format(
+                name, def.album or "<unknown>"
+            )
+        )
+        logger:assert(type(def.filepath) == "string",
+            ("Validation of song %s failed: invalid `filepath field type " ..
+                "(\"string\" expected, got \"%s\")"):format(
+                name, type(def.filepath)
+            )
+        )
+        local file = io.open(def.filepath, "rb")
+        logger:assert(file,
+            ("Validation of song %s failed: invalid `filepath` field value " ..
+                "(File \"%s\" not found)"):format(
+                name, def.filepath
+            )
+        )
+        file:close()
+        local filename = def.filepath:match("[^/]*.ogg$")
+        assert(filename,
+            ("Validation of song %s failed: invalid `filepath` field value " ..
+                "(File \"%s\" does not end with .ogg)"):format(
+                name, def.filepath
+            )
+        )
+        def.spec.name = filename:sub(1, #filename - 4)
+    end
+
+    logger:assert(type(def.spec.name) == "string",
+        ("Validation of song %s failed: invalid `spec.name` field type (\"string\" expected, got \"%s\")"):format(
+            name, type(def.spec.name)
+        )
+    )
 end
 
 -- Register a song

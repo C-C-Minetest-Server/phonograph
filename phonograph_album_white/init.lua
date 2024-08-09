@@ -35,8 +35,12 @@ album:register_song("white", {
     short_description = S("20 seconds of white noise"),
     long_description = "ffmpeg -f lavfi -i anoisesrc=c=white:r=48000 -t 20", -- Not translated on purpose
     artist = "anoise", -- Not translated on purpose
+    filepath = table.concat({
+        minetest.get_modpath("phonograph_album_white"),
+        "phonographs",
+        "phonograph_album_white_song_white.ogg"
+    }, DIR_DELIM),
     spec = { -- a SimpleSoundSpec
-        name = "phonograph_album_white_song_white",
         gain = 0.3
     }
 })

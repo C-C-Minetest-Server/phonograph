@@ -68,23 +68,35 @@ modlib.minetest.register_globalstep(0.5, function()
                     minetest.sound_fade(ptable[hash].handle, 0.5, 0)
                     ptable[hash][hash] = nil
                     phonograph.set_song(meta, "")
-                else
+                elseif phonograph.send_song(pname, meta_curr_song) then
                     logger:action(("Phonograph at %s is playing %s, changing the audio of %s"):format(
                         PS(pos), meta_curr_song, pname
                     ))
                     ptable[hash].curr_song = meta_curr_song
                     ptable[hash].handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname))
+                else
+                    logger:action(("Phonograph at %s is playing %s, sending audio for %s"):format(
+                        PS(pos), meta_curr_song, pname
+                    ))
+                    ptable[hash] = nil
                 end
             elseif not ptable[hash] and vector_distance(ppos, pos) <= 15 then
                 local song = phonograph.registered_songs[meta_curr_song]
                 if song then
-                    logger:action(("Phonograph at %s is playing %s, playing for %s"):format(
-                        PS(pos), meta_curr_song, pname
-                    ))
-                    ptable[hash] = {
-                        curr_song = meta_curr_song,
-                        handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname)),
-                    }
+                    local state = phonograph.send_song(pname, meta_curr_song)
+                    if state then
+                        logger:action(("Phonograph at %s is playing %s, playing for %s"):format(
+                            PS(pos), meta_curr_song, pname
+                        ))
+                        ptable[hash] = {
+                            curr_song = meta_curr_song,
+                            handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname)),
+                        }
+                    elseif state == nil then
+                        logger:action(("Phonograph at %s is playing %s, sending audio for %s"):format(
+                            PS(pos), meta_curr_song, pname
+                        ))
+                    end
                 else
                     logger:action(("Phonograph at %s is playing %s but it is not avaliable, " ..
                         "playing for %s failed"):format(
