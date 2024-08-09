@@ -17,8 +17,27 @@ local album = phonograph.register_album("phonograph_album_white:album_white", {
 ## Song registeration
 
 ```lua
--- Recommended: register via the album object
+-- Recommended: Send songs dynamically and use the album object
 -- This attaches the song onto that album
+album:register_song("white", {
+    title = S("Pure White Noise"),
+    short_description = S("20 seconds of white noise"),
+    long_description = "ffmpeg -f lavfi -i anoisesrc=c=white:r=48000 -t 20",
+    artist = "anoise",
+    filepath = table.concat({
+        minetest.get_modpath("phonograph_album_white"),
+        "phonographs",
+        "phonograph_album_white_song_white.ogg" -- with .ogg
+    }, DIR_DELIM),
+    spec = { -- a SimpleSoundSpec
+        -- do not include a name
+        gain = 0.3
+    }
+})
+```
+
+```lua
+-- NOT Recommended: not sending songs dynamically
 album:register_song("white", { -- Final ID will be phonograph_album_white:album_white:white
     title = "Pure White Noise",
     short_description = "20 seconds of white noise",
