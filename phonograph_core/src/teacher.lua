@@ -37,13 +37,13 @@ teacher.register_turorial("phonograph:tutorial_phonograph", {
     },
 
     {
-        texture = "phonograph_tutorial_1.png",
+        texture = "phonograph_tutorial_1.jpg",
         text =
             S("The Phonograph plays music to players around it. " ..
                 "When the player approaches it, the sound is played. When the player leaves, the sound ceases."),
     },
     {
-        texture = "phonograph_tutorial_2.png",
+        texture = "phonograph_tutorial_2.jpg",
         text =
             S("Right-click a Phonograph to set its soundtrack. " ..
                 "After selecting the soundtrack from the left panels, press \"Play\" to start the track.")
