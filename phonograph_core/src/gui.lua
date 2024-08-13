@@ -121,6 +121,12 @@ local get_page_content = {
         end
 
         local meta = minetest.get_meta(ctx.pos)
+        local license = song.license or album.license
+        if not license then
+            license = S("No license information given.")
+        elseif type(license) == "function" then
+            license = license(song, album)
+        end
 
         return gui.VBox {
             min_h = 10, min_w = 9,
@@ -148,7 +154,8 @@ local get_page_content = {
                 },
                 gui.Textarea {
                     max_w = 5.5, w = 5.5, h = 6,
-                    label = song.long_description or S("No descriptions given."),
+                    label =
+                        (song.long_description or S("No descriptions given.")) .. "\n\n" .. license,
                 },
                 phonograph.check_interact_privs(player, ctx.pos) and (
                     (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {

@@ -21,13 +21,21 @@ Idle Phonograph=
 ##[ src/gui.lua ]##
 Select an album to start exploring the universe of songs=
 ERROR: Album @1 not found.=
-Unknown artist=
 No descriptions given.=
 ERROR: Song @1 not found.=
+No license information given.=
 Stop=
 Play=
 ERROR: The node at @1 is not a phonograph.=
 Exit=
+
+##[ src/gui.lua ]##
+##[ src/licenses.lua ]##
+Unknown artist=
+
+##[ src/licenses.lua ]##
+This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
+This work by @1 is licensed under @2. To view a copy of this license, visit @3=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=

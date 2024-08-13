@@ -42,5 +42,6 @@ album:register_song("white", {
     }, DIR_DELIM),
     spec = { -- a SimpleSoundSpec
         gain = 0.3
-    }
+    },
+    license = phonograph.licenses.CC0,
 })

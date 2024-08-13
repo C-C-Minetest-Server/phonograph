@@ -21,13 +21,21 @@ Idle Phonograph=閒置的留聲機
 ##[ src/gui.lua ]##
 Select an album to start exploring the universe of songs=探尋音樂的世界，從選擇專輯開始。
 ERROR: Album @1 not found.=錯誤：找不到專輯 @1
-Unknown artist=未知的藝人
 No descriptions given.=沒有描述。
 ERROR: Song @1 not found.=錯誤：找不到音軌 @1
+No license information given.=
 Stop=停止
 Play=播放
 ERROR: The node at @1 is not a phonograph.=錯誤：位於 @1 的方塊並非留聲機。
 Exit=離開
+
+##[ src/gui.lua ]##
+##[ src/licenses.lua ]##
+Unknown artist=未知的藝人
+
+##[ src/licenses.lua ]##
+This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
+This work by @1 is licensed under @2. To view a copy of this license, visit @3=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=

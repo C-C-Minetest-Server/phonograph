@@ -32,6 +32,7 @@ for _, name in ipairs({
     "functions", -- depends: registrations
     "dynamic",   -- depends: registrations
     "player",    -- depends: functions, settings, dynamic
+    "licenses",
     "gui",       -- depends: functions, registrations
     "node",      -- depends: gui
     "teacher",
