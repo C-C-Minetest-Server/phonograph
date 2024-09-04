@@ -24,6 +24,8 @@ local logger = phonograph.internal.logger:sublogger("gui")
 local gui = flow.widgets
 local S = phonograph.internal.S
 
+local teacher_exists = minetest.global_exists("teacher") and true or false
+
 local get_page_content = {
     none = function()
         return gui.VBox {
@@ -316,6 +318,17 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                 label = S("Phonograph"),
                 expand = true, align_h = "left"
             },
+            teacher_exists and gui.ButtonExit {
+                label = "?",
+                w = 0.5, h = 0.5,
+                on_event = function(e_player)
+                    minetest.after(0, function(name)
+                        if minetest.get_player_by_name(name) then
+                            teacher.simple_show(e_player, "phonograph:tutorial_phonograph")
+                        end
+                    end, e_player:get_player_name())
+                end,
+            } or gui.Nil{},
             gui.ButtonExit {
                 w = 0.5, h = 0.5,
                 label = "x",
