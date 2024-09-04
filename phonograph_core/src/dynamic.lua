@@ -27,6 +27,10 @@ if not minetest.features.dynamic_add_media_table then
         return true
     end
 
+    function phonograph.get_downloading_songs()
+        return {}
+    end
+
     return
 end
 
@@ -38,7 +42,8 @@ minetest.register_on_leaveplayer(function(player)
     songs_state[player:get_player_name()] = nil
 end)
 
-function phonograph.send_song(name, song_name)
+function phonograph.send_song(player, song_name)
+    local name = player:get_player_name()
     local def = phonograph.registered_songs[song_name]
     if not def then
         return false
@@ -57,8 +62,28 @@ function phonograph.send_song(name, song_name)
             if not songs_state[name] then return end
             logger:action(("Sent song %s to player %s"):format(song_name, name))
             songs_state[name][song_name] = true
+
+            local cb_player = minetest.get_player_by_name(name)
+            if cb_player then
+                phonograph.node_gui:update(cb_player)
+            end
         end)
+        phonograph.node_gui:update(player)
         return nil
     end
     return songs_state[name][song_name]
+end
+
+function phonograph.get_downloading_songs(name)
+    if not songs_state[name] then
+        return {}
+    end
+
+    local rtn = {}
+    for song, state in pairs(songs_state[name]) do
+        if state == false then
+            rtn[#rtn+1] = song
+        end
+    end
+    return rtn
 end

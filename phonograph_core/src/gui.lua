@@ -128,6 +128,8 @@ local get_page_content = {
             license = license(song, album)
         end
 
+        local songs_downloading = phonograph.get_downloading_songs(player:get_player_name())
+
         return gui.VBox {
             min_h = 10, min_w = 9,
             gui.VBox {
@@ -157,34 +159,52 @@ local get_page_content = {
                     label =
                         (song.long_description or S("No descriptions given.")) .. "\n\n" .. license,
                 },
-                phonograph.check_interact_privs(player, ctx.pos) and (
-                    (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {
-                        -- is the playing song
-                        w = 1.5, h = 1,
-                        label = S("Stop"),
-                        expand = true, align_h = "right", align_v = "bottom",
-                        on_event = function(eplayer, ectx)
-                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+                gui.Hbox {
+                    (#songs_downloading ~= 0) and gui.Label {
+                        max_w = 4, w = 4, h = 1,
+                        label = (#songs_downloading == 1)
+                            and S("Downloading @1", phonograph.registered_songs[songs_downloading[1]].title)
+                            or S("Downloading @1 songs", #songs_downloading),
+                    } or gui.Nil {},
+                    phonograph.check_interact_privs(player, ctx.pos) and (
+                        (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {
+                            -- is the playing song
+                            w = 1.5, h = 1,
+                            label = S("Stop"),
+                            expand = true, align_h = "right", align_v = "bottom",
+                            on_event = function(eplayer, ectx)
+                                if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                            local emeta = minetest.get_meta(ectx.pos)
-                            phonograph.set_song(emeta, "")
+                                local emeta = minetest.get_meta(ectx.pos)
+                                phonograph.set_song(emeta, "")
 
-                            return true
-                        end,
-                    } or gui.Button {
-                        -- not the playing song
-                        w = 1.5, h = 1,
-                        label = S("Play"),
-                        expand = true, align_h = "right", align_v = "bottom",
-                        on_event = function(eplayer, ectx)
-                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+                                phonograph.node_gui:update_where(function(uplayer, uctx)
+                                    return vector.equals(uctx.pos, ectx.pos)
+                                        and uplayer:get_player_name() ~= eplayer:get_player_name()
+                                end)
 
-                            local emeta = minetest.get_meta(ectx.pos)
-                            phonograph.set_song(emeta, ctx.selected_song)
+                                return true
+                            end,
+                        } or gui.Button {
+                            -- not the playing song
+                            w = 1.5, h = 1,
+                            label = S("Play"),
+                            expand = true, align_h = "right", align_v = "bottom",
+                            on_event = function(eplayer, ectx)
+                                if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                            return true
-                        end
-                    }) or gui.Nil {},
+                                local emeta = minetest.get_meta(ectx.pos)
+                                phonograph.set_song(emeta, ctx.selected_song)
+
+                                phonograph.node_gui:update_where(function(uplayer, uctx)
+                                    return vector.equals(uctx.pos, ectx.pos)
+                                        and uplayer:get_player_name() ~= eplayer:get_player_name()
+                                end)
+
+                                return true
+                            end
+                        }) or gui.Nil {},
+                },
             },
         }
     end

@@ -68,7 +68,7 @@ modlib.minetest.register_globalstep(0.5, function()
                     minetest.sound_fade(ptable[hash].handle, 0.5, 0)
                     ptable[hash][hash] = nil
                     phonograph.set_song(meta, "")
-                elseif phonograph.send_song(pname, meta_curr_song) then
+                elseif phonograph.send_song(player, meta_curr_song) then
                     logger:action(("Phonograph at %s is playing %s, changing the audio of %s"):format(
                         PS(pos), meta_curr_song, pname
                     ))
@@ -83,7 +83,7 @@ modlib.minetest.register_globalstep(0.5, function()
             elseif not ptable[hash] and vector_distance(ppos, pos) <= 15 then
                 local song = phonograph.registered_songs[meta_curr_song]
                 if song then
-                    local state = phonograph.send_song(pname, meta_curr_song)
+                    local state = phonograph.send_song(player, meta_curr_song)
                     if state then
                         logger:action(("Phonograph at %s is playing %s, playing for %s"):format(
                             PS(pos), meta_curr_song, pname
