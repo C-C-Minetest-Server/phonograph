@@ -24,11 +24,12 @@
 local S = phonograph.internal.S
 
 -- Return the sound parameter table for a phonograph
-function phonograph.get_parameters(pos, name)
+function phonograph.get_parameters(pos, name, max_hear_distance)
     return {
         pos = pos,
         loop = true,
         to_player = name,
+        max_hear_distance = max_hear_distance or 32,
     }
 end
 
@@ -53,6 +54,24 @@ end
 function phonograph.set_song(meta, song_name)
     meta:set_string("curr_song", song_name)
     phonograph.update_meta(meta)
+end
+
+function phonograph.controller_get_connected_speakers(pos)
+    local node = core.get_node(pos)
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+
+    if controller_type == 1 then
+        local meta = core.get_meta(pos)
+
+        local connected_speakers_raw = meta:get_string("phonograph_connected_speakers")
+        local connected_speakers = connected_speakers_raw ~= "" and core.deserialize(connected_speakers_raw, true)
+
+        return connected_speakers or {}
+    elseif controller_type == 2 then
+        return { { pos, -1 } }
+    end
+
+    return {}
 end
 
 

@@ -23,26 +23,14 @@
 local logger = phonograph.internal.logger:sublogger("node")
 local S = phonograph.internal.S
 
-local def = {
-    description = S("Phonograph"),
-    tiles = { "phonograph_node_temp.png" },
-    groups = { oddly_breakable_by_hand = 3 }, -- A must-work group (cf. Void game)
-    on_construct = function(pos)
-        local meta = core.get_meta(pos)
-        meta:set_string("infotext", S("Idle Phonograph"))
-    end,
-    on_destruct = function(pos)
-        phonograph.stop_phonograph(pos)
-    end,
-    on_rightclick = function(pos, _, player)
-        phonograph.node_gui:show(player, { pos = pos })
-    end,
-}
+local dig_groups = { oddly_breakable_by_hand = 3 } -- A must-work group (cf. Void game)
+local sounds = nil
+
 if core.get_modpath("default") then
     -- Use Minetest Game groups
     logger:action("Using Minetest Game node definitions and crafting recipies.")
-    def.groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
-    def.sounds = default.node_sound_wood_defaults()
+    dig_groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
+    sounds = default.node_sound_wood_defaults()
 
     core.register_craft({
         output = "phonograph:phonograph",
@@ -55,8 +43,8 @@ if core.get_modpath("default") then
 elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     -- Use Hades Revisited groups
     logger:action("`Using Hades Revisited node definitions and crafting recipies.")
-    def.groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
-    def.sounds = hades_sounds.node_sound_wood_defaults()
+    dig_groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
+    sounds = hades_sounds.node_sound_wood_defaults()
 
     core.register_craft({
         output = "phonograph:phonograph",
@@ -68,4 +56,24 @@ elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     })
 end
 
-core.register_node(":phonograph:phonograph", def)
+local phonograph_def = {
+    description = S("Phonograph"),
+    tiles = { "phonograph_node_temp.png" },
+    groups = table.copy(dig_groups),
+    sounds = sounds,
+
+    on_construct = function(pos)
+        local meta = core.get_meta(pos)
+        meta:set_string("infotext", S("Idle Phonograph"))
+    end,
+    on_destruct = function(pos)
+        phonograph.stop_phonograph(pos)
+    end,
+    on_rightclick = function(pos, _, player)
+        phonograph.node_gui:show(player, { pos = pos })
+    end,
+}
+phonograph_def.groups.phonograph_speaker = 2 -- Is a speaker and the controller is itself
+phonograph_def.groups.phonograph_controller = 2 -- Is a controller and the speaker is itself
+
+core.register_node(":phonograph:phonograph", phonograph_def)

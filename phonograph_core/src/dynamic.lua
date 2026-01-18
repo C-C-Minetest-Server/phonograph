@@ -95,7 +95,10 @@ function phonograph.send_song(player, song_name, channels)
 
     local sent = true
     for _, channel in ipairs(channels) do
-        local channel_spec = channel >= 0 and def.multichannel_specs[channel] or def.spec
+        local channel_spec = def.spec
+        if channel >= 0 then
+            channel_spec = def.multichannel_specs[channel]
+        end
         if not channel_spec then return false end
 
         if channel_spec.filepath and not songs_state[name][song_name][channel] then
