@@ -82,7 +82,7 @@ function phonograph.validate_song(name, def)
         )
     end
     if def.filepath then
-        logger:assert(minetest.features.dynamic_add_media_table,
+        logger:assert(core.features.dynamic_add_media_table,
             ("Song %s in album %s is not compactible with this Minetest version. " ..
                 "Please upgrade Minetest to 5.5.0 or later versions."):format(
                 name, def.album or "<unknown>"
@@ -159,7 +159,7 @@ function phonograph.register_album(name, def)
 end
 
 phonograph.registered_albums_keys = {}
-minetest.register_on_mods_loaded(function()
+core.register_on_mods_loaded(function()
     for key, _ in pairs(phonograph.registered_albums) do
         phonograph.registered_albums_keys[#phonograph.registered_albums_keys+1] = key
     end

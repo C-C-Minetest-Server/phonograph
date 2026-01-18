@@ -21,7 +21,7 @@
 ]]
 
 local logger = phonograph.internal.logger:sublogger("player")
-local PS = minetest.pos_to_string
+local PS = core.pos_to_string
 
 local function vector_distance(pos1, pos2)
     local diff = vector.subtract(pos1, pos2)
@@ -33,7 +33,7 @@ end
 phonograph.players = {}
 
 modlib.minetest.register_globalstep(0.5, function()
-    for _, player in ipairs(minetest.get_connected_players()) do
+    for _, player in ipairs(core.get_connected_players()) do
         local pname = player:get_player_name()
         local ppos = player:get_pos()
 
@@ -44,9 +44,9 @@ modlib.minetest.register_globalstep(0.5, function()
 
         local minp, maxp = vector.add(ppos, 32), vector.add(ppos, -32)
         local visited = {}
-        for _, pos in ipairs(minetest.find_nodes_in_area(minp, maxp, "phonograph:phonograph", false)) do
-            local hash = minetest.hash_node_position(pos)
-            local meta = minetest.get_meta(pos)
+        for _, pos in ipairs(core.find_nodes_in_area(minp, maxp, "phonograph:phonograph", false)) do
+            local hash = core.hash_node_position(pos)
+            local meta = core.get_meta(pos)
             local meta_curr_song = meta:get_string("curr_song")
 
             if meta_curr_song == "" then
@@ -54,18 +54,18 @@ modlib.minetest.register_globalstep(0.5, function()
                     logger:action(("Phonograph at %s is not playing anything, fading audio for %s"):format(
                         PS(pos), pname
                     ))
-                    minetest.sound_fade(ptable[hash].handle, 0.5, 0)
+                    core.sound_fade(ptable[hash].handle, 0.5, 0)
                     ptable[hash] = nil
                 end
             elseif ptable[hash] and meta_curr_song ~= ptable[hash].curr_song then
-                minetest.sound_fade(ptable[hash].handle, 0.5, 0)
+                core.sound_fade(ptable[hash].handle, 0.5, 0)
                 local song = phonograph.registered_songs[meta_curr_song]
                 if not song then
                     logger:action(("Phonograph at %s is playing %s but it is not avaliable, " ..
                         "fading audio for %s and stopping phonograph."):format(
                         PS(pos), meta_curr_song, pname
                     ))
-                    minetest.sound_fade(ptable[hash].handle, 0.5, 0)
+                    core.sound_fade(ptable[hash].handle, 0.5, 0)
                     ptable[hash][hash] = nil
                     phonograph.set_song(meta, "")
                 elseif phonograph.send_song(player, meta_curr_song) then
@@ -73,7 +73,7 @@ modlib.minetest.register_globalstep(0.5, function()
                         PS(pos), meta_curr_song, pname
                     ))
                     ptable[hash].curr_song = meta_curr_song
-                    ptable[hash].handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname))
+                    ptable[hash].handle = core.sound_play(song.spec, phonograph.get_parameters(pos, pname))
                 else
                     logger:action(("Phonograph at %s is playing %s, sending audio for %s"):format(
                         PS(pos), meta_curr_song, pname
@@ -90,7 +90,7 @@ modlib.minetest.register_globalstep(0.5, function()
                         ))
                         ptable[hash] = {
                             curr_song = meta_curr_song,
-                            handle = minetest.sound_play(song.spec, phonograph.get_parameters(pos, pname)),
+                            handle = core.sound_play(song.spec, phonograph.get_parameters(pos, pname)),
                         }
                     elseif state == nil then
                         logger:action(("Phonograph at %s is playing %s, sending audio for %s"):format(
@@ -113,9 +113,9 @@ modlib.minetest.register_globalstep(0.5, function()
             if not visited[hash] then
                 -- Must be too far away or no longer a phonograph
                 logger:action(("Player %s is too far away from phonograph at %s, fading audio."):format(
-                    pname, PS(minetest.get_position_from_hash(hash))
+                    pname, PS(core.get_position_from_hash(hash))
                 ))
-                minetest.sound_fade(data.handle, 0.5, 0)
+                core.sound_fade(data.handle, 0.5, 0)
                 ptable[hash] = nil
             end
         end
@@ -123,7 +123,7 @@ modlib.minetest.register_globalstep(0.5, function()
 end)
 
 -- remove sound handlers on leave
-minetest.register_on_leaveplayer(function(player)
+core.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     logger:action(("Player %s leaving, removing handler reference."):format(
         name
@@ -133,19 +133,19 @@ end)
 
 -- Cut out the audio of a phonograph immediately
 function phonograph.stop_phonograph(pos)
-    local hash = minetest.hash_node_position(pos)
+    local hash = core.hash_node_position(pos)
     for name, data in pairs(phonograph.players) do
         if data[hash] then
             logger:action(("Phonograph at %s no longer exists, stopping audio for %s"):format(
                 PS(pos), name
             ))
-            minetest.sound_stop(data[hash].handle)
+            core.sound_stop(data[hash].handle)
             data[hash] = nil
         end
     end
 end
 
-if minetest.get_modpath("background_music") then
+if core.get_modpath("background_music") then
     -- Supress background music if active phonograph within 20m
     -- 21~32m: NVM just let them overlay
 
@@ -154,7 +154,7 @@ if minetest.get_modpath("background_music") then
         local ppos = player:get_pos()
         if phonograph.players[name] then
             for hash in pairs(phonograph.players[name]) do
-                local pos = minetest.get_position_from_hash(hash)
+                local pos = core.get_position_from_hash(hash)
                 if vector_distance(ppos, pos) <= 20 then
                     return "null", 10000
                 end

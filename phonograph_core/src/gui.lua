@@ -24,7 +24,7 @@ local logger = phonograph.internal.logger:sublogger("gui")
 local gui = flow.widgets
 local S = phonograph.internal.S
 
-local teacher_exists = minetest.global_exists("teacher") and true or false
+local teacher_exists = core.global_exists("teacher") and true or false
 
 local get_page_content = {
     none = function()
@@ -122,7 +122,7 @@ local get_page_content = {
             }
         end
 
-        local meta = minetest.get_meta(ctx.pos)
+        local meta = core.get_meta(ctx.pos)
         local license = song.license or album.license
         if not license then
             license = S("No license information given.")
@@ -177,7 +177,7 @@ local get_page_content = {
                             on_event = function(eplayer, ectx)
                                 if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                                local emeta = minetest.get_meta(ectx.pos)
+                                local emeta = core.get_meta(ectx.pos)
                                 phonograph.set_song(emeta, "")
 
                                 phonograph.node_gui:update_where(function(uplayer, uctx)
@@ -195,7 +195,7 @@ local get_page_content = {
                             on_event = function(eplayer, ectx)
                                 if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
 
-                                local emeta = minetest.get_meta(ectx.pos)
+                                local emeta = core.get_meta(ectx.pos)
                                 phonograph.set_song(emeta, ctx.selected_song)
 
                                 phonograph.node_gui:update_where(function(uplayer, uctx)
@@ -218,9 +218,9 @@ local generate_albums_list = function(_, ctx)
         local def = phonograph.registered_albums[name]
         local title = def.short_title or def.title or S("Untitled")
         if ctx.selected_album == name then
-            title = minetest.get_color_escape_sequence("yellow") .. title
+            title = core.get_color_escape_sequence("yellow") .. title
         elseif ctx.curr_album == name then
-            title = minetest.get_color_escape_sequence("orange") .. title
+            title = core.get_color_escape_sequence("orange") .. title
         end
         button_list[#button_list+1] = gui.HBox {
             gui.Image {
@@ -251,9 +251,9 @@ local generate_songs_list = function(_, ctx)
         local def = phonograph.registered_songs[name]
         local title = def.short_title or def.title or S("Untitled")
         if ctx.selected_song == name then
-            title = minetest.get_color_escape_sequence("yellow") .. title
+            title = core.get_color_escape_sequence("yellow") .. title
         elseif ctx.curr_song == name then
-            title = minetest.get_color_escape_sequence("orange") .. title
+            title = core.get_color_escape_sequence("orange") .. title
         end
         button_list[#button_list+1] = gui.Button {
             w = 4, h = 1,
@@ -273,7 +273,7 @@ end
 phonograph.node_gui = flow.make_gui(function(player, ctx)
     logger:assert(ctx.pos, "`ctx` without `pos` passed into phonograph.node_gui")
 
-    local node = minetest.get_node(ctx.pos)
+    local node = core.get_node(ctx.pos)
     if node.name ~= "phonograph:phonograph" then
         return gui.VBox {
             min_h = 9, min_w = 6,
@@ -283,7 +283,7 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                 expand = true, align_h = "center", align_v = "center",
             },
             gui.Label {
-                label = S("ERROR: The node at @1 is not a phonograph.", minetest.pos_to_string(ctx.pos)),
+                label = S("ERROR: The node at @1 is not a phonograph.", core.pos_to_string(ctx.pos)),
                 expand = true, align_h = "center", align_v = "center",
             },
             gui.ButtonExit {
@@ -293,7 +293,7 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
     end
 
 
-    local meta = minetest.get_meta(ctx.pos)
+    local meta = core.get_meta(ctx.pos)
     ctx.curr_song = meta:get_string("curr_song")
     ctx.curr_album = (phonograph.registered_songs[ctx.curr_song] or {}).album or ""
     if not (ctx.selected_album or ctx.selected_song) then
@@ -322,8 +322,8 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                 label = "?",
                 w = 0.5, h = 0.5,
                 on_event = function(e_player)
-                    minetest.after(0, function(name)
-                        if minetest.get_player_by_name(name) then
+                    core.after(0, function(name)
+                        if core.get_player_by_name(name) then
                             teacher.simple_show(e_player, "phonograph:tutorial_phonograph")
                         end
                     end, e_player:get_player_name())

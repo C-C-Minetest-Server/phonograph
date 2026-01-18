@@ -28,7 +28,7 @@ local def = {
     tiles = { "phonograph_node_temp.png" },
     groups = { oddly_breakable_by_hand = 3 }, -- A must-work group (cf. Void game)
     on_construct = function(pos)
-        local meta = minetest.get_meta(pos)
+        local meta = core.get_meta(pos)
         meta:set_string("infotext", S("Idle Phonograph"))
     end,
     on_destruct = function(pos)
@@ -38,13 +38,13 @@ local def = {
         phonograph.node_gui:show(player, { pos = pos })
     end,
 }
-if minetest.get_modpath("default") then
+if core.get_modpath("default") then
     -- Use Minetest Game groups
     logger:action("Using Minetest Game node definitions and crafting recipies.")
     def.groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
     def.sounds = default.node_sound_wood_defaults()
 
-    minetest.register_craft({
+    core.register_craft({
         output = "phonograph:phonograph",
         recipe = {
             { "group:wood", "group:wood",    "group:wood" },
@@ -52,13 +52,13 @@ if minetest.get_modpath("default") then
             { "group:wood", "group:wood",    "group:wood" },
         }
     })
-elseif minetest.get_modpath("hades_core") and minetest.get_modpath("hades_sounds") then
+elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     -- Use Hades Revisited groups
     logger:action("`Using Hades Revisited node definitions and crafting recipies.")
     def.groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
     def.sounds = hades_sounds.node_sound_wood_defaults()
 
-    minetest.register_craft({
+    core.register_craft({
         output = "phonograph:phonograph",
         recipe = {
             { "group:wood", "group:wood",    "group:wood" },
@@ -68,4 +68,4 @@ elseif minetest.get_modpath("hades_core") and minetest.get_modpath("hades_sounds
     })
 end
 
-minetest.register_node(":phonograph:phonograph", def)
+core.register_node(":phonograph:phonograph", def)

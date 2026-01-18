@@ -19,7 +19,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ]]
 
-local S = minetest.get_translator("phonograph_album_white")
+local S = core.get_translator("phonograph_album_white")
 
 local album = phonograph.register_album("phonograph_album_white:album_white", {
     short_title = S("World of White"),
@@ -36,7 +36,7 @@ album:register_song("white", {
     long_description = "ffmpeg -f lavfi -i anoisesrc=c=white:r=48000 -t 20", -- Not translated on purpose
     artist = "anoise", -- Not translated on purpose
     filepath = table.concat({
-        minetest.get_modpath("phonograph_album_white"),
+        core.get_modpath("phonograph_album_white"),
         "phonographs",
         "phonograph_album_white_song_white.ogg"
     }, DIR_DELIM),

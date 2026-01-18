@@ -22,11 +22,11 @@
 phonograph = {}
 phonograph.internal = {
     logger = logging.logger("phonograph.core"),
-    S = minetest.get_translator("phonograph_core")
+    S = core.get_translator("phonograph_core")
 }
 
 
-local MP = minetest.get_modpath("phonograph_core")
+local MP = core.get_modpath("phonograph_core")
 for _, name in ipairs({
     "registrations",
     "functions", -- depends: registrations

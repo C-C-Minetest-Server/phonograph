@@ -38,11 +38,11 @@ function phonograph.check_interact_privs(name, pos)
         name = name:get_player_name()
     end
 
-    if minetest.is_protected(pos, name) and not minetest.check_player_privs(name, { protection_bypass = true }) then
+    if core.is_protected(pos, name) and not core.check_player_privs(name, { protection_bypass = true }) then
         return false
     end
 
-    local node = minetest.get_node(pos)
+    local node = core.get_node(pos)
     if node.name ~= "phonograph:phonograph" then
         return false
     end
@@ -68,9 +68,9 @@ function phonograph.update_meta(meta)
         local album = phonograph.registered_albums[song.album] or {}
         if song then
             meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
-            meta:set_string("song_title", minetest.get_translated_string("en", song.title or "Untitled"))
+            meta:set_string("song_title", core.get_translated_string("en", song.title or "Untitled"))
             meta:set_string("song_artist",
-                minetest.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
+                core.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
         else
             meta:set_string("infotext", S("Idle Phonograph") .. "\n" .. S("Invalid soundtrack"))
             meta:set_string("song_title", "")
