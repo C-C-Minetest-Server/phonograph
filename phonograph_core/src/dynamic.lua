@@ -69,29 +69,33 @@ function phonograph.send_song(player, song_name, channels)
         end
         if not channel_spec then return false end
 
-        if channel_spec.filepath and not songs_state[name][song_name][channel] then
-            logger:action("Sending song %s spec \"%s\" to player %s",
-                song_name, channel >= 0 and ("multichannel #" .. channel) or "mono", name)
-            songs_state[name][song_name][channel] = false
-            sent = nil
-            core.dynamic_add_media({
-                filepath = channel_spec.filepath,
-                to_player = name,
-            }, function()
-                if not songs_state[name] or not songs_state[name][song_name] then return end
-                songs_state[name][song_name][channel] = true
-                logger:action("Sent song %s spec \"%s\" to player %s",
+        if channel_spec.filepath then
+            if songs_state[name][song_name][channel] ~= true then
+                sent = nil
+            end
+            if songs_state[name][song_name][channel] == nil then
+                logger:action("Sending song %s spec \"%s\" to player %s",
                     song_name, channel >= 0 and ("multichannel #" .. channel) or "mono", name)
+                songs_state[name][song_name][channel] = false
+                core.dynamic_add_media({
+                    filepath = channel_spec.filepath,
+                    to_player = name,
+                }, function()
+                    if not songs_state[name] or not songs_state[name][song_name] then return end
+                    songs_state[name][song_name][channel] = true
+                    logger:action("Sent song %s spec \"%s\" to player %s",
+                        song_name, channel >= 0 and ("multichannel #" .. channel) or "mono", name)
 
-                for _, cb_channel in ipairs(channels) do
-                    if songs_state[name][song_name][cb_channel] ~= true then
-                        return
+                    for _, cb_channel in ipairs(channels) do
+                        if songs_state[name][song_name][cb_channel] ~= true then
+                            return
+                        end
                     end
-                end
 
-                local cb_player = core.get_player_by_name(name)
-                phonograph.node_gui:update(cb_player)
-            end)
+                    local cb_player = core.get_player_by_name(name)
+                    phonograph.node_gui:update(cb_player)
+                end)
+            end
         end
     end
 
