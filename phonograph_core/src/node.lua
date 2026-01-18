@@ -41,6 +41,24 @@ if core.get_modpath("default") then
             { "group:wood", "group:wood",      "group:wood" },
         }
     })
+
+    core.register_craft({
+        output = "phonograph:phonograph_controller",
+        recipe = {
+            { "group:wood", "group:wood",      "group:wood" },
+            { "group:wood", "default:gold_ingot", "group:wood" },
+            { "group:wood", "group:wood",      "group:wood" },
+        }
+    })
+
+    core.register_craft({
+        output = "phonograph:phonograph_speaker",
+        recipe = {
+            { "group:wood", "group:wood",      "group:wood" },
+            { "group:wood", "default:steel_ingot", "group:wood" },
+            { "group:wood", "group:wood",      "group:wood" },
+        }
+    })
 elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     -- Use Hades Revisited groups
     logger:action("`Using Hades Revisited node definitions and crafting recipies.")
@@ -53,6 +71,24 @@ elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
             { "group:wood", "group:wood",         "group:wood" },
             { "group:wood", "hades_core:diamond", "group:wood" },
             { "group:wood", "group:wood",         "group:wood" },
+        }
+    })
+
+    core.register_craft({
+        output = "phonograph:phonograph_controller",
+        recipe = {
+            { "group:wood", "group:wood",      "group:wood" },
+            { "group:wood", "hades_core:gold_ingot", "group:wood" },
+            { "group:wood", "group:wood",      "group:wood" },
+        }
+    })
+
+    core.register_craft({
+        output = "phonograph:phonograph_speaker",
+        recipe = {
+            { "group:wood", "group:wood",      "group:wood" },
+            { "group:wood", "hades_core:steel_ingot", "group:wood" },
+            { "group:wood", "group:wood",      "group:wood" },
         }
     })
 end
