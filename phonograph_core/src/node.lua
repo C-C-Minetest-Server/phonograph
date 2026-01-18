@@ -116,7 +116,7 @@ core.register_node(":phonograph:phonograph", phonograph_def)
 
 local CONTROLLER_LINK_FORMSPEC =
     "field[channel_id;" ..
-    FS("Channel to play from the speaker \n(\"mono\" for mono channel, 0 for left, 1 for right)") ..
+    FS("Channel to play (mono, left, right)") ..
     ";]"
 
 local last_interacted_phonograph_speaker = {}
