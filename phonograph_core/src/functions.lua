@@ -151,9 +151,6 @@ function phonograph.controller_disconnect_all_from_controller(pos)
         return false
     end
 
-    local meta = core.get_meta(pos)
-    meta:set_string("phonograph_connected_speakers", "")
-
     local connected_speakers = phonograph.controller_get_connected_speakers(pos)
     for _, data in ipairs(connected_speakers) do
         local speaker_pos = data[1]
@@ -163,6 +160,9 @@ function phonograph.controller_disconnect_all_from_controller(pos)
         speaker_meta:set_string("phonograph_controller_pos_z", "")
         speaker_meta:set_string("infotext", S("Disconnected Phonograph Speaker"))
     end
+
+    local meta = core.get_meta(pos)
+    meta:set_string("phonograph_connected_speakers", "")
 end
 
 function phonograph.speaker_do_disconnect(pos)
