@@ -147,9 +147,3 @@ function phonograph.get_downloading_songs(name)
     end
     return rtn
 end
-
-core.register_chatcommand("inspect_song_state", {
-    func = function()
-        return true, dump(songs_state)
-    end,
-})
