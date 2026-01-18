@@ -30,6 +30,13 @@ licenses.CC0 = function(song, album)
         "https://creativecommons.org/publicdomain/zero/1.0/")
 end
 
+licenses.CCBY3 = function(song, album)
+    return S("This work by @1 is licensed under @2. To view a copy of this license, visit @3",
+        song.artist or album.artist or S("Unknown artist"),
+        "CC BY 3.0",
+        "https://creativecommons.org/licenses/by/3.0/")
+end
+
 licenses.CCBYSA3 = function(song, album)
     return S("This work by @1 is licensed under @2. To view a copy of this license, visit @3",
         song.artist or album.artist or S("Unknown artist"),
