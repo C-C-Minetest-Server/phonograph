@@ -274,7 +274,8 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
     logger:assert(ctx.pos, "`ctx` without `pos` passed into phonograph.node_gui")
 
     local node = core.get_node(ctx.pos)
-    if node.name ~= "phonograph:phonograph" then
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+    if controller_type == 0 then
         return gui.VBox {
             min_h = 9, min_w = 6,
             gui.Image {

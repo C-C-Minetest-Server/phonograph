@@ -45,3 +45,36 @@ album:register_song("white", {
     },
     license = phonograph.licenses.CC0,
 })
+
+album:register_song("stereo", {
+    title = S("Stereophonic Realm"),
+    short_description = S("20 seconds of stereo test white noise"),
+    artist = "anoise",
+    spec = {
+        filepath = table.concat({
+            core.get_modpath("phonograph_album_white"),
+            "phonographs",
+            "phonograph_album_white_song_stereo.ogg"
+        }, DIR_DELIM),
+        gain = 0.3
+    },
+    multichannel_specs = {
+        {
+            filepath = table.concat({
+                core.get_modpath("phonograph_album_white"),
+                "phonographs",
+                "phonograph_album_white_song_stereo_ch0.ogg"
+            }, DIR_DELIM),
+            gain = 0.3
+        },
+        {
+            filepath = table.concat({
+                core.get_modpath("phonograph_album_white"),
+                "phonographs",
+                "phonograph_album_white_song_stereo_ch1.ogg"
+            }, DIR_DELIM),
+            gain = 0.3
+        },
+    },
+    license = phonograph.licenses.CC0,
+})

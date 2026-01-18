@@ -44,38 +44,6 @@ core.register_on_leaveplayer(function(player)
     songs_state[player:get_player_name()] = nil
 end)
 
---[[function phonograph.send_song(player, song_name)
-    local name = player:get_player_name()
-    local def = phonograph.registered_songs[song_name]
-    if not def then
-        return false
-    elseif not def.spec.filepath then
-        return true
-    end
-    if not songs_state[name] then
-        songs_state[name] = {}
-    end
-    if songs_state[name][song_name] == nil then
-        songs_state[name][song_name] = false
-        core.dynamic_add_media({
-            filepath = def.spec.filepath,
-            to_player = name,
-        }, function()
-            if not songs_state[name] then return end
-            logger:action(("Sent song %s to player %s"):format(song_name, name))
-            songs_state[name][song_name] = true
-
-            local cb_player = core.get_player_by_name(name)
-            if cb_player then
-                phonograph.node_gui:update(cb_player)
-            end
-        end)
-        phonograph.node_gui:update(player)
-        return nil
-    end
-    return songs_state[name][song_name]
-end]]
-
 function phonograph.send_song(player, song_name, channels)
     local name = player:get_player_name()
     local def = phonograph.registered_songs[song_name]
@@ -97,7 +65,7 @@ function phonograph.send_song(player, song_name, channels)
     for _, channel in ipairs(channels) do
         local channel_spec = def.spec
         if channel >= 0 then
-            channel_spec = def.multichannel_specs[channel]
+            channel_spec = def.multichannel_specs and def.multichannel_specs[channel + 1]
         end
         if not channel_spec then return false end
 

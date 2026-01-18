@@ -44,7 +44,8 @@ function phonograph.check_interact_privs(name, pos)
     end
 
     local node = core.get_node(pos)
-    if node.name ~= "phonograph:phonograph" then
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+    if controller_type == 0 then
         return false
     end
 
@@ -72,6 +73,109 @@ function phonograph.controller_get_connected_speakers(pos)
     end
 
     return {}
+end
+
+function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel)
+    local node = core.get_node(pos)
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+
+    if controller_type ~= 1 then
+        return false
+    end
+
+    local speaker_node = core.get_node(speaker_pos)
+    local speaker_type = core.get_item_group(speaker_node.name, "phonograph_speaker")
+
+    if speaker_type ~= 1 then
+        return false
+    end
+
+    local speaker_meta = core.get_meta(speaker_pos)
+    speaker_meta:set_int("phonograph_controller_pos_x", pos.x)
+    speaker_meta:set_int("phonograph_controller_pos_y", pos.y)
+    speaker_meta:set_int("phonograph_controller_pos_z", pos.z)
+    speaker_meta:set_string("infotext", S("Connected Phonograph Speaker: @1 on @2",
+        core.pos_to_string(pos), channel >= 0 and ("multichannel #" .. channel) or "mono"))
+
+    local meta = core.get_meta(pos)
+    local connected_speakers = phonograph.controller_get_connected_speakers(pos)
+
+    for _, data in ipairs(connected_speakers) do
+        if vector.equals(data[1], speaker_pos) then
+            data[2] = channel
+            meta:set_string("phonograph_connected_speakers", core.serialize(connected_speakers))
+            return true
+        end
+    end
+
+    connected_speakers[#connected_speakers+1] = { {
+        x = speaker_pos.x,
+        y = speaker_pos.y,
+        z = speaker_pos.z,
+    }, channel }
+    meta:set_string("phonograph_connected_speakers", core.serialize(connected_speakers))
+    return true
+end
+
+function phonograph.controller_disconnect_speaker_from_controller(controller_pos, speaker_pos)
+    local node = core.get_node(controller_pos)
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+
+    if controller_type ~= 1 then
+        return false
+    end
+
+    local speaker_meta = core.get_meta(speaker_pos)
+    speaker_meta:set_string("phonograph_controller_pos_x", "")
+    speaker_meta:set_string("phonograph_controller_pos_y", "")
+    speaker_meta:set_string("phonograph_controller_pos_z", "")
+    speaker_meta:set_string("infotext", S("Disconnected Phonograph Speaker"))
+
+    local meta = core.get_meta(controller_pos)
+    local connected_speakers = phonograph.controller_get_connected_speakers(controller_pos)
+    for i, data in ipairs(connected_speakers) do
+        if vector.equals(data[1], speaker_pos) then
+            table.remove(connected_speakers, i)
+            local serialized = #connected_speakers > 0 and core.serialize(connected_speakers) or ""
+            meta:set_string("phonograph_connected_speakers", serialized)
+            return
+        end
+    end
+end
+
+function phonograph.controller_disconnect_all_from_controller(pos)
+    local node = core.get_node(pos)
+    local controller_type = core.get_item_group(node.name, "phonograph_controller")
+
+    if controller_type ~= 1 then
+        return false
+    end
+
+    local meta = core.get_meta(pos)
+    meta:set_string("phonograph_connected_speakers", "")
+
+    local connected_speakers = phonograph.controller_get_connected_speakers(pos)
+    for _, data in ipairs(connected_speakers) do
+        local speaker_pos = data[1]
+        local speaker_meta = core.get_meta(speaker_pos)
+        speaker_meta:set_string("phonograph_controller_pos_x", "")
+        speaker_meta:set_string("phonograph_controller_pos_y", "")
+        speaker_meta:set_string("phonograph_controller_pos_z", "")
+        speaker_meta:set_string("infotext", S("Disconnected Phonograph Speaker"))
+    end
+end
+
+function phonograph.speaker_do_disconnect(pos)
+    local meta = core.get_meta(pos)
+    local x = meta:contains("phonograph_controller_pos_x") and meta:get_int("phonograph_controller_pos_x") or nil
+    local y = meta:contains("phonograph_controller_pos_y") and meta:get_int("phonograph_controller_pos_y") or nil
+    local z = meta:contains("phonograph_controller_pos_z") and meta:get_int("phonograph_controller_pos_z") or nil
+
+    if x and y and z then
+        local controller_pos = vector.new(x, y, z)
+        phonograph.stop_phonograph(controller_pos)     -- TODO: (Probably) only stop this speaker
+        phonograph.controller_disconnect_speaker_from_controller(controller_pos, pos)
+    end
 end
 
 
