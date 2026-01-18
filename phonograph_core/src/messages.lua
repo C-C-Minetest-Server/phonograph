@@ -1,5 +1,5 @@
--- phonograph/phonograph_core/init.lua
--- Nodes, registerations, mechanics
+-- phonograph/phonograph_core/src/functions.lua
+-- Translation messages
 --[[
     Phonograph: Play music from albums
     Copyright (C) 2024  1F616EMO
@@ -19,26 +19,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ]]
 
-phonograph = {}
-phonograph.internal = {
-    logger = logging.logger("phonograph.core"),
-    S = core.get_translator("phonograph_core")
-}
+-- local logger = phonograph.internal.logger:sublogger("functions")
+local S = phonograph.internal.S
 
+phonograph.messages = {}
 
-local MP = core.get_modpath("phonograph_core")
-for _, name in ipairs({
-    "messages",
-    "registrations", -- depends: messages
-    "functions",     -- depends: registrations
-    "dynamic",       -- depends: registrations
-    "player",        -- depends: functions, settings, dynamic
-    "licenses",
-    "gui",           -- depends: functions, registrations
-    "node",          -- depends: gui
-    "teacher",
-}) do
-    dofile(MP .. "/src/" .. name .. ".lua")
-end
-
-phonograph.internal = nil
+phonograph.messages.channel_mono = S("Mono")
+phonograph.messages.channel_left = S("Left")
+phonograph.messages.channel_right = S("Right")

@@ -25,98 +25,97 @@ phonograph.registered_albums = {}
 phonograph.registered_songs = {}
 phonograph.songs_in_album = {}
 
+function phonograph.validate_spec(name, desc, spec)
+    logger:assert(type(spec) == "table",
+        "Validation of song %s spec \"%s\" failed: invalid type (\"table\" expected, got \"%s\")",
+        name, desc, type(spec))
+    if spec.gain then
+        logger:assert(type(spec.gain) == "number",
+            "Validation of song %s spec \"%s\" failed: invalid `spec.gain` field type " ..
+            "(\"number\" or \"nil\" expected, got \"%s\")",
+            name, desc, type(spec.gain))
+        logger:assert(spec.gain >= 0,
+            "Validation of song %s spec \"%s\" failed: invalid `spec.gain` field value " ..
+            "(non-negative number expected, got \"%s\")",
+            name, desc, spec.gain)
+    end
+    if spec.pitch then
+        logger:assert(type(spec.pitch) == "number",
+            "Validation of song %s spec \"%s\" failed: invalid `spec.pitch` field type " ..
+            "(\"number\" or \"nil\" expected, got \"%s\")",
+            name, desc, type(spec.pitch))
+        logger:assert(spec.pitch >= 0,
+            "Validation of song %s spec \"%s\" failed: invalid `spec.pitch` field value " ..
+            "(non-negative number expected, got \"%s\")",
+            name, desc, spec.pitch)
+    end
+    if spec.fade then
+        logger:assert(type(spec.fade) == "number",
+            "Validation of song %s spec \"%s\" failed: invalid `spec.fade` field type " ..
+            "(\"number\" or \"nil\" expected, got \"%s\")",
+            name, desc, type(spec.fade))
+        logger:assert(spec.fade >= 0,
+            "Validation of song %s spec \"%s\" failed: invalid `spec.fade` field value " ..
+            "(non-negative number expected, got \"%s\")",
+            name, desc, spec.fade)
+    end
+    if spec.filepath then
+        logger:assert(core.features.dynamic_add_media_table,
+            "Song %s spec \"%s\" is not compactible with this Minetest version. " ..
+            "Please upgrade Minetest to 5.5.0 or later versions.",
+            name, desc)
+        logger:assert(type(spec.filepath) == "string",
+            "Validation of song %s spec \"%s\" failed: invalid `spec.filepath field type " ..
+            "(\"string\" expected, got \"%s\")",
+            name, desc, type(spec.filepath))
+        local file = io.open(spec.filepath, "rb")
+        logger:assert(file,
+            "Validation of song %s spec \"%s\" failed: invalid `spec.filepath` field value " ..
+            "(File \"%s\" not found)",
+            name, desc, spec.filepath)
+        file:close()
+        local filename = spec.filepath:match("[^/]*.ogg$")
+        assert(filename,
+            "Validation of song %s spec \"%s\" failed: invalid `spec.filepath` field value " ..
+            "(File \"%s\" does not end with .ogg)",
+            name, desc, spec.filepath)
+        spec.name = filename:sub(1, #filename - 4)
+    end
+
+    logger:assert(type(spec.name) == "string",
+        "Validation of song %s spec \"%s\" failed: invalid `spec.name` field type (\"string\" expected, got \"%s\")",
+        name, desc, type(spec.name))
+end
+
 -- Validation of song definitions
 -- Mainly checks the SimpleSoundSpec (def.spec)
 function phonograph.validate_song(name, def)
     logger:assert(type(def) == "table",
-        ("Validation of song %s failed: invalid definition table type (\"table\" expected, got \"%s\")"):format(
-            name, type(def)
-        )
-    )
-    logger:assert(type(def.spec) == "table",
-        ("Validation of song %s failed: invalid `spec` field type (\"table\" expected, got \"%s\")"):format(
-            name, type(def.spec)
-        )
-    )
+        "Validation of song %s failed: invalid definition table type (\"table\" expected, got \"%s\")",
+        name, type(def))
 
-    if def.spec.gain then
-        logger:assert(type(def.spec.gain) == "number",
-            ("Validation of song %s failed: invalid `spec.gain` field type " ..
-                "(\"number\" or \"nil\" expected, got \"%s\")"):format(
-                name, type(def.spec.gain)
-            )
-        )
-        logger:assert(def.spec.gain >= 0,
-            ("Validation of song %s failed: invalid `spec.gain` field value " ..
-                "(non-negative number expected, got \"%s\")"):format(
-                name, def.spec.gain
-            )
-        )
-    end
-    if def.spec.pitch then
-        logger:assert(type(def.spec.pitch) == "number",
-            ("Validation of song %s failed: invalid `spec.pitch` field type " ..
-                "(\"number\" or \"nil\" expected, got \"%s\")"):format(
-                name, type(def.spec.pitch)
-            )
-        )
-        logger:assert(def.spec.pitch >= 0,
-            ("Validation of song %s failed: invalid `spec.pitch` field value " ..
-                "(non-negative number expected, got \"%s\")"):format(
-                name, def.spec.pitch
-            )
-        )
-    end
-    if def.spec.fade then
-        logger:assert(type(def.spec.fade) == "number",
-            ("Validation of song %s failed: invalid `spec.fade` field type " ..
-                "(\"number\" or \"nil\" expected, got \"%s\")"):format(
-                name, type(def.spec.fade)
-            )
-        )
-        logger:assert(def.spec.fade >= 0,
-            ("Validation of song %s failed: invalid `spec.fade` field value " ..
-                "(non-negative number expected, got \"%s\")"):format(
-                name, def.spec.fade
-            )
-        )
-    end
     if def.filepath then
-        logger:assert(core.features.dynamic_add_media_table,
-            ("Song %s in album %s is not compactible with this Minetest version. " ..
-                "Please upgrade Minetest to 5.5.0 or later versions."):format(
-                name, def.album or "<unknown>"
-            )
-        )
-        logger:assert(type(def.filepath) == "string",
-            ("Validation of song %s failed: invalid `filepath field type " ..
-                "(\"string\" expected, got \"%s\")"):format(
-                name, type(def.filepath)
-            )
-        )
-        local file = io.open(def.filepath, "rb")
-        logger:assert(file,
-            ("Validation of song %s failed: invalid `filepath` field value " ..
-                "(File \"%s\" not found)"):format(
-                name, def.filepath
-            )
-        )
-        file:close()
-        local filename = def.filepath:match("[^/]*.ogg$")
-        assert(filename,
-            ("Validation of song %s failed: invalid `filepath` field value " ..
-                "(File \"%s\" does not end with .ogg)"):format(
-                name, def.filepath
-            )
-        )
-        def.spec.name = filename:sub(1, #filename - 4)
+        def.spec.filepath = def.filepath
+        def.filepath = nil
     end
 
-    logger:assert(type(def.spec.name) == "string",
-        ("Validation of song %s failed: invalid `spec.name` field type (\"string\" expected, got \"%s\")"):format(
-            name, type(def.spec.name)
-        )
-    )
+    phonograph.validate_spec(name, "mono", def.spec)
+
+    -- Stereo or multi-channel validation
+    if def.multichannel_specs then
+        logger:assert(type(def.multichannel_specs) == "table",
+            "Validation of song %s failed: invalid `multichannel_spec` field type " ..
+            "(\"table\" or \"nil\" expected, got \"%s\")",
+            name, type(def.spec))
+
+        logger:assert(#def.multichannel_specs >= 2,
+            "Validation of song %s failed: Number of specs in `multichannel_spec` must be at least 2",
+            name)
+
+        for i, spec in ipairs(def.multichannel_specs) do
+            phonograph.validate_spec(name, "multichannel #" .. i, spec)
+        end
+    end
 end
 
 -- Register a song
@@ -128,7 +127,7 @@ function phonograph.register_song(name, def)
         if not phonograph.songs_in_album[def.album] then
             phonograph.songs_in_album[def.album] = {}
         end
-        phonograph.songs_in_album[def.album][#phonograph.songs_in_album[def.album]+1] = name
+        phonograph.songs_in_album[def.album][#phonograph.songs_in_album[def.album] + 1] = name
     end
 end
 
@@ -161,7 +160,7 @@ end
 phonograph.registered_albums_keys = {}
 core.register_on_mods_loaded(function()
     for key, _ in pairs(phonograph.registered_albums) do
-        phonograph.registered_albums_keys[#phonograph.registered_albums_keys+1] = key
+        phonograph.registered_albums_keys[#phonograph.registered_albums_keys + 1] = key
     end
     table.sort(phonograph.registered_albums_keys)
 end)

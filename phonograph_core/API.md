@@ -24,13 +24,13 @@ album:register_song("white", {
     short_description = S("20 seconds of white noise"),
     long_description = "ffmpeg -f lavfi -i anoisesrc=c=white:r=48000 -t 20",
     artist = "anoise",
-    filepath = table.concat({
-        minetest.get_modpath("phonograph_album_white"),
-        "phonographs",
-        "phonograph_album_white_song_white.ogg" -- with .ogg
-    }, DIR_DELIM),
     spec = { -- a SimpleSoundSpec
         -- do not include a name
+        filepath = table.concat({
+            minetest.get_modpath("phonograph_album_white"),
+            "phonographs",
+            "phonograph_album_white_song_white.ogg" -- with .ogg
+        }, DIR_DELIM),
         gain = 0.3
     }
 })
