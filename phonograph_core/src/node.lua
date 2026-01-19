@@ -106,6 +106,10 @@ local CONTROLLER_LINK_FORMSPEC =
     "field[channel_id;" ..
     FS("Channel to play (mono, left, right)") ..
     ";]"
+local CONTROLLER_VOLU_FORMSPEC =
+    "field[sound_volume;" ..
+    FS("Volume (0 < volume <= 100)%") ..
+    ";]"
 
 local last_interacted_phonograph_speaker = {}
 
@@ -186,7 +190,10 @@ phonograph_speaker_def.groups.phonograph_speaker = 1 -- Is a normal speaker
 core.register_node(":phonograph:phonograph_speaker", phonograph_speaker_def)
 
 core.register_on_player_receive_fields(function(player, formname, fields)
-    if string.sub(formname, 0, 27) ~= "phonograph:controller_link:" then return end
+    local sub_name = string.sub(formname, 0, 27)
+    if sub_name ~= "phonograph:controller_link:" and sub_name ~= "phonograph:controller_volu:" then
+        return
+    end
 
     local name = player:get_player_name()
     local pos_data = string.sub(formname, 28)
@@ -223,28 +230,49 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         return false
     end
 
-    local channel = fields.channel_id
-    channel = channel and string.trim(channel)
-    if not channel or channel == "" then
-        core.chat_send_player(name, S("Invalid channel ID!"))
-        return
-    elseif channel == "mono" then
-        channel = -1
-    elseif channel == "left" then
-        channel = 0
-    elseif channel == "right" then
-        channel = 1
-    end
-    channel = tonumber(channel)
-    if channel == nil then
-        core.chat_send_player(name, S("Invalid channel ID!"))
-        return
-    end
+    if sub_name == "phonograph:controller_link:" then
+        local channel = fields.channel_id
+        channel = channel and string.trim(channel)
+        if not channel or channel == "" then
+            core.chat_send_player(name, S("Invalid channel ID!"))
+            return
+        elseif channel == "mono" then
+            channel = -1
+        elseif channel == "left" then
+            channel = 0
+        elseif channel == "right" then
+            channel = 1
+        end
+        channel = tonumber(channel)
+        if channel == nil then
+            core.chat_send_player(name, S("Invalid channel ID!"))
+            return
+        end
 
-    phonograph.speaker_do_disconnect(speaker_pos)
-    if phonograph.controller_connect_to_speaker(controller_pos, speaker_pos, channel) then
-        core.chat_send_player(name, S("Successfully connected @1 to @2 on channel #@3",
-            core.pos_to_string(speaker_pos), core.pos_to_string(speaker_pos), channel))
+        core.show_formspec(
+            name,
+            "phonograph:controller_volu:" .. table.concat({
+                speaker_pos.x, speaker_pos.y, speaker_pos.z,
+                controller_pos.x, controller_pos.y, controller_pos.z,
+                channel
+            }, ","),
+            CONTROLLER_VOLU_FORMSPEC)
+    elseif sub_name == "phonograph:controller_volu:" then
+        local channel = tonumber(pos_parts[7])
+        if channel == nil then return end
+
+        local volume = tonumber(fields.sound_volume)
+        if volume == nil or volume <= 0 or volume > 100 then
+            core.chat_send_player(name, S("Volume not supplied or out of range!"))
+            return
+        end
+
+        phonograph.stop_phonograph(controller_pos)
+        phonograph.speaker_do_disconnect(speaker_pos)
+        if phonograph.controller_connect_to_speaker(controller_pos, speaker_pos, channel, volume) then
+            core.chat_send_player(name, S("Successfully connected @1 to @2 on channel #@3 at volume @4%",
+                core.pos_to_string(speaker_pos), core.pos_to_string(speaker_pos), channel, volume))
+        end
     end
 end)
 

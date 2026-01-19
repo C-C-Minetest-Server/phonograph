@@ -26,6 +26,60 @@ local S = phonograph.internal.S
 
 local teacher_exists = core.global_exists("teacher") and true or false
 
+local function get_volume_widget(ctx)
+    local meta = core.get_meta(ctx.pos)
+    local volume = meta:get_int("sound_volume")
+    if volume == 0 then
+        volume = 100
+        phonograph.set_volume(meta, 100)
+    end
+
+    local function change_volume(eplayer, ectx, offset)
+        if volume + offset > 100 or volume + offset <= 0 then
+            return
+        end
+
+        volume = volume + offset
+        phonograph.set_volume(meta, volume)
+
+        phonograph.node_gui:update_where(function(uplayer, uctx)
+            return vector.equals(uctx.pos, ectx.pos)
+                and uplayer:get_player_name() ~= eplayer:get_player_name()
+        end)
+
+        return true
+    end
+
+    return gui.VBox {
+        gui.HBox {
+            max_w = 2.9, max_h = 0.5, h = 0.5,
+            align_h = "center",
+            gui.Label {
+                max_w = 1.2, w = 1.2, max_h = 0.5, h = 0.5,
+                label = S("Volume:")
+            },
+            gui.Button {
+                max_w = 0.5, max_h = 0.5, w = 0.5, h = 0.5,
+                label = "-",
+                on_event = function(eplayer, ectx)
+                    return change_volume(eplayer, ectx, -5)
+                end,
+            },
+            gui.Label {
+                max_w = 0.7, w = 0.7, max_h = 0.5, h = 0.5,
+                label = volume .. "%",
+            },
+            gui.Button {
+                max_w = 0.5, max_h = 0.5, w = 0.5, h = 0.5,
+                label = "+",
+                on_event = function(eplayer, ectx)
+                    return change_volume(eplayer, ectx, 5)
+                end,
+            },
+        },
+    }
+end
+
 local get_page_content = {
     none = function()
         return gui.VBox {
@@ -172,12 +226,14 @@ local get_page_content = {
                         (song.long_description or S("No descriptions given.")) .. "\n\n" .. table.concat(footer, "\n"),
                 },
                 gui.Hbox {
-                    (#songs_downloading ~= 0) and gui.Label {
+                    gui.Label {
                         max_w = 4, w = 4, h = 1,
-                        label = (#songs_downloading == 1)
+                        expand = true,
+                        label = (#songs_downloading ~= 0) and ((#songs_downloading == 1)
                             and S("Downloading @1", phonograph.registered_songs[songs_downloading[1]].title)
-                            or S("Downloading @1 songs", #songs_downloading),
-                    } or gui.Nil {},
+                            or S("Downloading @1 songs", #songs_downloading)) or "",
+                    },
+                    phonograph.check_interact_privs(player, ctx.pos) and get_volume_widget(ctx) or gui.Nil {},
                     phonograph.check_interact_privs(player, ctx.pos) and (
                         (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {
                             -- is the playing song

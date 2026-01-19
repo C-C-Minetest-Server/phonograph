@@ -42,18 +42,27 @@ local function fade_controller_for_player(ptable, controller_pos_hash)
     end
 end
 
-local function play_song_for_player(pname, controller_pos, controller_table, song, connected_speakers)
+local function play_song_for_player(pname, controller_pos, controller_table, volume, song, connected_speakers)
     for _, speaker_data in ipairs(connected_speakers) do
         local speaker_pos = speaker_data[1]
         local speaker_pos_hash = core.hash_node_position(speaker_pos)
         local speaker_sound_channel = speaker_data[2]
+        local speaker_sound_gain = speaker_data[3]
+        if not speaker_sound_gain then
+            speaker_sound_gain = 100
+        end
 
         local spec = speaker_sound_channel >= 0
             and song.multichannel_specs and song.multichannel_specs[speaker_sound_channel + 1] or song.spec
         if spec then
             local max_hear_distance = vector_distance(controller_pos, speaker_pos) + phonograph.STOP_HEARING_DISTANCE
-            controller_table.speakers[speaker_pos_hash] =
-                core.sound_play(spec, phonograph.get_parameters(speaker_pos, pname, max_hear_distance))
+            controller_table.speakers[speaker_pos_hash] = core.sound_play(spec, {
+                pos = speaker_pos,
+                loop = true,
+                to_player = pname,
+                max_hear_distance = max_hear_distance or 32,
+                gain = speaker_sound_gain * volume / 10000
+            })
         end
     end
 end
@@ -61,6 +70,11 @@ end
 local function process_one_phonograph(controller_pos, controller_pos_hash, player, pname, ppos, ptable)
     local controller_meta = core.get_meta(controller_pos)
     local meta_curr_song = controller_meta:get_string("curr_song")
+    local volume = controller_meta:get_int("sound_volume")
+    if volume == 0 then
+        volume = 100
+        phonograph.set_volume(controller_meta, 100)
+    end
 
     local connected_speakers = phonograph.controller_get_connected_speakers(controller_pos)
     if #connected_speakers == 0 then return end
@@ -91,7 +105,10 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
         channels_to_send[#channels_to_send + 1] = k
     end
 
-    if ptable[controller_pos_hash] and meta_curr_song ~= ptable[controller_pos_hash].curr_song then
+    if ptable[controller_pos_hash] and (
+            meta_curr_song ~= ptable[controller_pos_hash].curr_song or
+            volume ~= ptable[controller_pos_hash].volume
+        ) then
         fade_controller_for_player(ptable, controller_pos_hash)
         if not song then
             logger:action("Phonograph at %s is playing %s but it is not avaliable, " ..
@@ -100,14 +117,13 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
             ptable[controller_pos_hash] = nil
             phonograph.set_song(controller_meta, "")
         elseif phonograph.send_song(player, meta_curr_song, channels_to_send) then
-            logger:action("Phonograph at %s is playing %s, changing the audio of %s",
-                PS(controller_pos), meta_curr_song, pname)
+            logger:action("Phonograph at %s is playing %s at volume %s%%, changing the audio of %s",
+                PS(controller_pos), meta_curr_song, volume, pname)
             ptable[controller_pos_hash].curr_song = meta_curr_song
+            ptable[controller_pos_hash].volume = volume
             ptable[controller_pos_hash].speakers = {}
-            play_song_for_player(pname, controller_pos, ptable[controller_pos_hash], song, connected_speakers)
+            play_song_for_player(pname, controller_pos, ptable[controller_pos_hash], volume, song, connected_speakers)
         else
-            logger:action("Phonograph at %s is playing %s, sending audio for %s",
-                PS(controller_pos), meta_curr_song, pname)
             ptable[controller_pos_hash] = nil
         end
     elseif not ptable[controller_pos_hash]
@@ -115,14 +131,15 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
         if song then
             local state = phonograph.send_song(player, meta_curr_song, channels_to_send)
             if state then
-                logger:action("Phonograph at %s is playing %s, playing for %s",
-                    PS(controller_pos), meta_curr_song, pname)
-                ptable[controller_pos_hash] = { curr_song = meta_curr_song, speakers = {} }
+                logger:action("Phonograph at %s is playing %s at volume %s%%, playing for %s",
+                    PS(controller_pos), meta_curr_song, volume, pname)
+                ptable[controller_pos_hash] = {
+                    curr_song = meta_curr_song,
+                    volume = volume,
+                    speakers = {},
+                }
                 play_song_for_player(
-                    pname, controller_pos, ptable[controller_pos_hash], song, connected_speakers)
-            elseif state == nil then
-                logger:action("Phonograph at %s is playing %s, sending audio for %s",
-                    PS(controller_pos), meta_curr_song, pname)
+                    pname, controller_pos, ptable[controller_pos_hash], volume, song, connected_speakers)
             end
         else
             logger:action("Phonograph at %s is playing %s but it is not avaliable, " ..

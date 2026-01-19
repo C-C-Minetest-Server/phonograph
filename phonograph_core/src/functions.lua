@@ -23,16 +23,6 @@
 -- local logger = phonograph.internal.logger:sublogger("functions")
 local S = phonograph.internal.S
 
--- Return the sound parameter table for a phonograph
-function phonograph.get_parameters(pos, name, max_hear_distance)
-    return {
-        pos = pos,
-        loop = true,
-        to_player = name,
-        max_hear_distance = max_hear_distance or 32,
-    }
-end
-
 -- Return true if a player can interact with that phonograph
 function phonograph.check_interact_privs(name, pos)
     if type(name) ~= "string" then
@@ -57,6 +47,11 @@ function phonograph.set_song(meta, song_name)
     phonograph.update_meta(meta)
 end
 
+function phonograph.set_volume(meta, volume)
+    meta:set_string("sound_volume", volume)
+    phonograph.update_meta(meta)
+end
+
 function phonograph.controller_get_connected_speakers(pos)
     local node = core.get_node(pos)
     local controller_type = core.get_item_group(node.name, "phonograph_controller")
@@ -75,7 +70,7 @@ function phonograph.controller_get_connected_speakers(pos)
     return {}
 end
 
-function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel)
+function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel, volume)
     local node = core.get_node(pos)
     local controller_type = core.get_item_group(node.name, "phonograph_controller")
 
@@ -90,12 +85,16 @@ function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel)
         return false
     end
 
+    if not volume or volume <= 0 or volume > 100 then
+        volume = 100
+    end
+
     local speaker_meta = core.get_meta(speaker_pos)
     speaker_meta:set_int("phonograph_controller_pos_x", pos.x)
     speaker_meta:set_int("phonograph_controller_pos_y", pos.y)
     speaker_meta:set_int("phonograph_controller_pos_z", pos.z)
-    speaker_meta:set_string("infotext", S("Connected Phonograph Speaker: @1 on @2",
-        core.pos_to_string(pos), channel >= 0 and ("multichannel #" .. channel) or "mono"))
+    speaker_meta:set_string("infotext", S("Connected Phonograph Speaker: @1 on @2 at volume @3%",
+        core.pos_to_string(pos), channel >= 0 and ("multichannel #" .. channel) or "mono", volume))
 
     local meta = core.get_meta(pos)
     local connected_speakers = phonograph.controller_get_connected_speakers(pos)
@@ -112,7 +111,7 @@ function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel)
         x = speaker_pos.x,
         y = speaker_pos.y,
         z = speaker_pos.z,
-    }, channel }
+    }, channel, volume }
     meta:set_string("phonograph_connected_speakers", core.serialize(connected_speakers))
     return true
 end
@@ -190,7 +189,15 @@ function phonograph.update_meta(meta)
         local song = phonograph.registered_songs[curr_song]
         local album = phonograph.registered_albums[song.album] or {}
         if song then
-            meta:set_string("infotext", S("Phonograph") .. "\n" .. S("Playing: @1", song.title or S("Untitled")))
+            local volume = meta:get_int("sound_volume")
+            if volume == 0 then
+                meta:set_int("sound_volume", 100)
+                volume = 100
+            end
+            meta:set_string("infotext",
+                S("Phonograph") .. "\n" ..
+                S("Playing: @1", song.title or S("Untitled")) .. "\n" ..
+                S("Volume: @1%", volume))
             meta:set_string("song_title", core.get_translated_string("en", song.title or "Untitled"))
             meta:set_string("song_artist",
                 core.get_translated_string("en", song.artist or album.artist or "Unknown artist"))
@@ -204,6 +211,7 @@ function phonograph.update_meta(meta)
     meta:mark_as_private({
         "curr_song",
         "song_title",
-        "song_artist"
+        "song_artist",
+        "sound_volume"
     })
 end
