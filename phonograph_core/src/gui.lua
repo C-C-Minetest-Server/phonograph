@@ -123,11 +123,21 @@ local get_page_content = {
         end
 
         local meta = core.get_meta(ctx.pos)
-        local license = song.license or album.license
-        if not license then
-            license = S("No license information given.")
-        elseif type(license) == "function" then
-            license = license(song, album)
+        local footer = {}
+
+        if song.multichannel_specs then
+            footer[#footer+1] = S("This song comes with @1 audio.",
+                #song.multichannel_specs == 2 and S("stereo") or S("@1-channel", #song.multichannel_specs))
+        end
+
+        do
+            local license = song.license or album.license
+            if not license then
+                license = S("No license information given.")
+            elseif type(license) == "function" then
+                license = license(song, album)
+            end
+            footer[#footer+1] = license
         end
 
         local songs_downloading = phonograph.get_downloading_songs(player:get_player_name())
@@ -159,7 +169,7 @@ local get_page_content = {
                 gui.Textarea {
                     max_w = 5.5, w = 5.5, h = 6,
                     label =
-                        (song.long_description or S("No descriptions given.")) .. "\n\n" .. license,
+                        (song.long_description or S("No descriptions given.")) .. "\n\n" .. table.concat(footer, "\n"),
                 },
                 gui.Hbox {
                     (#songs_downloading ~= 0) and gui.Label {
