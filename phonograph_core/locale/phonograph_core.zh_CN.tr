@@ -1,8 +1,9 @@
 # textdomain: phonograph_core
 
 ##[ src/functions.lua ]##
-Connected Phonograph Speaker: @1 on @2=
+Connected Phonograph Speaker: @1 on @2 at volume @3%=
 Playing: @1=正在播放：@1
+Volume: @1%=
 Invalid soundtrack=无效的音轨
 
 ##[ src/functions.lua ]##
@@ -21,6 +22,7 @@ Disconnected Phonograph Speaker=
 Idle Phonograph=闲置的留声机
 
 ##[ src/gui.lua ]##
+Volume:=音量：
 Select an album to start exploring the universe of songs=探寻音乐的世界，从选择专辑开始。
 ERROR: Album @1 not found.=错误：找不到专辑 @1
 No descriptions given.=没有描述。
@@ -51,11 +53,13 @@ Right=
 
 ##[ src/node.lua ]##
 Channel to play (mono, left, right)=
+Volume (0 < volume <@= 100)%=
 Phonograph Controller=
 Phonograph Speaker=
 Punch a phonograph controller to connect this speaker.=
 Invalid channel ID!=
-Successfully connected @1 to @2 on channel #@3=
+Volume not supplied or out of range!=
+Successfully connected @1 to @2 on channel #@3 at volume @4%=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=
