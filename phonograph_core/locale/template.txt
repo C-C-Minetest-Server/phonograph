@@ -1,6 +1,7 @@
 # textdomain: phonograph_core
 
 ##[ src/functions.lua ]##
+Connected Phonograph Speaker: @1 on @2=
 Playing: @1=
 Invalid soundtrack=
 
@@ -16,6 +17,7 @@ Phonograph=
 
 ##[ src/functions.lua ]##
 ##[ src/node.lua ]##
+Disconnected Phonograph Speaker=
 Idle Phonograph=
 
 ##[ src/gui.lua ]##
@@ -23,7 +25,12 @@ Select an album to start exploring the universe of songs=
 ERROR: Album @1 not found.=
 No descriptions given.=
 ERROR: Song @1 not found.=
+This song comes with @1 audio.=
+stereo=
+@1-channel=
 No license information given.=
+Downloading @1=
+Downloading @1 songs=
 Stop=
 Play=
 ERROR: The node at @1 is not a phonograph.=
@@ -36,6 +43,19 @@ Unknown artist=
 ##[ src/licenses.lua ]##
 This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
 This work by @1 is licensed under @2. To view a copy of this license, visit @3=
+
+##[ src/messages.lua ]##
+Mono=
+Left=
+Right=
+
+##[ src/node.lua ]##
+Channel to play (mono, left, right)=
+Phonograph Controller=
+Phonograph Speaker=
+Punch a phonograph controller to connect this speaker.=
+Invalid channel ID!=
+Successfully connected @1 to @2 on channel #@3=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=

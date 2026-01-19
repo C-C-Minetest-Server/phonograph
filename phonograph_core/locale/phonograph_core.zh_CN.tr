@@ -1,6 +1,7 @@
 # textdomain: phonograph_core
 
 ##[ src/functions.lua ]##
+Connected Phonograph Speaker: @1 on @2=
 Playing: @1=正在播放：@1
 Invalid soundtrack=无效的音轨
 
@@ -16,6 +17,7 @@ Phonograph=留声机
 
 ##[ src/functions.lua ]##
 ##[ src/node.lua ]##
+Disconnected Phonograph Speaker=
 Idle Phonograph=闲置的留声机
 
 ##[ src/gui.lua ]##
@@ -23,7 +25,12 @@ Select an album to start exploring the universe of songs=探寻音乐的世界�
 ERROR: Album @1 not found.=错误：找不到专辑 @1
 No descriptions given.=没有描述。
 ERROR: Song @1 not found.=错误：找不到音轨 @1
-No license information given.=
+This song comes with @1 audio.=本音轨附有@1内容。
+stereo=双声道
+@1-channel=@1声道
+No license information given.=无版权资讯。
+Downloading @1=正在下载@1
+Downloading @1 songs=正在下载@1条音轨
 Stop=停止
 Play=播放
 ERROR: The node at @1 is not a phonograph.=错误：位于 @1 的方块并非留声机。
@@ -36,6 +43,19 @@ Unknown artist=未知的艺人
 ##[ src/licenses.lua ]##
 This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
 This work by @1 is licensed under @2. To view a copy of this license, visit @3=
+
+##[ src/messages.lua ]##
+Mono=
+Left=
+Right=
+
+##[ src/node.lua ]##
+Channel to play (mono, left, right)=
+Phonograph Controller=
+Phonograph Speaker=
+Punch a phonograph controller to connect this speaker.=
+Invalid channel ID!=
+Successfully connected @1 to @2 on channel #@3=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=

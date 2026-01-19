@@ -7,3 +7,5 @@ Relaxing noises for testing purpose=
 Oh, so relaxing! A bug-free world starts from a test case.=
 Pure White Noise=
 20 seconds of white noise=
+Stereophonic Realm=
+20 seconds of stereo test white noise=
