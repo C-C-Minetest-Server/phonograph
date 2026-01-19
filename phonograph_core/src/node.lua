@@ -43,21 +43,15 @@ if core.get_modpath("default") then
     })
 
     core.register_craft({
+        type = "shapeless",
         output = "phonograph:phonograph_controller",
-        recipe = {
-            { "group:wood", "group:wood",      "group:wood" },
-            { "group:wood", "default:gold_ingot", "group:wood" },
-            { "group:wood", "group:wood",      "group:wood" },
-        }
+        recipe = { "phonograph:phonograph", "default:gold_ingot" },
     })
 
     core.register_craft({
+        type = "shapeless",
         output = "phonograph:phonograph_speaker",
-        recipe = {
-            { "group:wood", "group:wood",      "group:wood" },
-            { "group:wood", "default:steel_ingot", "group:wood" },
-            { "group:wood", "group:wood",      "group:wood" },
-        }
+        recipe = { "phonograph:phonograph", "default:steel_ingot" },
     })
 elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     -- Use Hades Revisited groups
@@ -75,21 +69,15 @@ elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     })
 
     core.register_craft({
+        type = "shapeless",
         output = "phonograph:phonograph_controller",
-        recipe = {
-            { "group:wood", "group:wood",      "group:wood" },
-            { "group:wood", "hades_core:gold_ingot", "group:wood" },
-            { "group:wood", "group:wood",      "group:wood" },
-        }
+        recipe = { "phonograph:phonograph", "hades_core:gold_ingot" },
     })
 
     core.register_craft({
+        type = "shapeless",
         output = "phonograph:phonograph_speaker",
-        recipe = {
-            { "group:wood", "group:wood",      "group:wood" },
-            { "group:wood", "hades_core:steel_ingot", "group:wood" },
-            { "group:wood", "group:wood",      "group:wood" },
-        }
+        recipe = { "phonograph:phonograph", "hades_core:steel_ingot" },
     })
 end
 
@@ -208,7 +196,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
     local controller_pos_x, controller_pos_y, controller_pos_z =
         tonumber(pos_parts[4]), tonumber(pos_parts[5]), tonumber(pos_parts[6])
     if speaker_pos_x == nil or speaker_pos_y == nil or speaker_pos_z == nil
-            or controller_pos_x == nil or controller_pos_y == nil or controller_pos_z == nil then
+        or controller_pos_x == nil or controller_pos_y == nil or controller_pos_z == nil then
         return
     end
     local speaker_pos = vector.new(speaker_pos_x, speaker_pos_y, speaker_pos_z)
