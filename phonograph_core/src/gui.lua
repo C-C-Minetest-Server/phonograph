@@ -52,10 +52,10 @@ local function get_volume_widget(ctx)
 
     return gui.VBox {
         gui.HBox {
-            max_w = 2.9, max_h = 0.5, h = 0.5,
+            max_w = 2.5, max_h = 0.5, h = 0.5,
             align_h = "center",
             gui.Label {
-                max_w = 1.2, w = 1.2, max_h = 0.5, h = 0.5,
+                max_w = 1, w = 1, max_h = 0.5, h = 0.5,
                 label = S("Volume:")
             },
             gui.Button {
@@ -66,7 +66,7 @@ local function get_volume_widget(ctx)
                 end,
             },
             gui.Label {
-                max_w = 0.7, w = 0.7, max_h = 0.5, h = 0.5,
+                max_w = 0.5, w = 0.5, max_h = 0.5, h = 0.5,
                 label = volume .. "%",
             },
             gui.Button {
@@ -90,7 +90,7 @@ local get_page_content = {
                 expand = true, align_h = "center", align_v = "center",
             },
             gui.Label {
-                label = S("Select an album to start exploring the universe of songs"),
+                label = S("Select an album to start exploring the universe of songs."),
                 expand = true, align_h = "center", align_v = "center",
             }
         }
@@ -180,7 +180,7 @@ local get_page_content = {
         local footer = {}
 
         if song.multichannel_specs then
-            footer[#footer+1] = S("This song comes with @1 audio.",
+            footer[#footer + 1] = S("This song comes with @1 audio.",
                 #song.multichannel_specs == 2 and S("stereo") or S("@1-channel", #song.multichannel_specs))
         end
 
@@ -191,88 +191,94 @@ local get_page_content = {
             elseif type(license) == "function" then
                 license = license(song, album)
             end
-            footer[#footer+1] = license
+            footer[#footer + 1] = license
         end
 
         local songs_downloading = phonograph.get_downloading_songs(player:get_player_name())
 
         return gui.VBox {
             min_h = 10, min_w = 9,
-            gui.VBox {
-                gui.HBox {
-                    gui.VBox {
-                        gui.Label {
-                            max_w = 6, w = 6,
-                            label = song.title or S("Untitled")
-                        },
-                        gui.Label {
-                            max_w = 6, w = 6,
-                            label = song.artist or album.artist or S("Unknown artist")
-                        },
-                        gui.Label {
-                            max_w = 6, w = 6,
-                            label = song.short_description or ""
-                        },
-                    },
-                    gui.Image {
-                        w = 2, h = 2,
-                        texture_name = album.cover or "phonograph_node_temp_ok.png",
-                        expand = true, align_h = "right",
-                    },
-                },
-                gui.Textarea {
-                    max_w = 5.5, w = 5.5, h = 6,
-                    label =
-                        (song.long_description or S("No descriptions given.")) .. "\n\n" .. table.concat(footer, "\n"),
-                },
-                gui.Hbox {
+            gui.HBox {
+                h = 2, max_h = 2,
+                gui.VBox {
                     gui.Label {
-                        max_w = 4, w = 4, h = 1,
-                        expand = true,
-                        label = (#songs_downloading ~= 0) and ((#songs_downloading == 1)
-                            and S("Downloading @1", phonograph.registered_songs[songs_downloading[1]].title)
-                            or S("Downloading @1 songs", #songs_downloading)) or "",
+                        max_w = 6, w = 6,
+                        max_h = 0.5, h = 0.5,
+                        label = song.title or S("Untitled")
                     },
-                    phonograph.check_interact_privs(player, ctx.pos) and get_volume_widget(ctx) or gui.Nil {},
-                    phonograph.check_interact_privs(player, ctx.pos) and (
-                        (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {
-                            -- is the playing song
-                            w = 1.5, h = 1,
-                            label = S("Stop"),
-                            expand = true, align_h = "right", align_v = "bottom",
-                            on_event = function(eplayer, ectx)
-                                if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
-
-                                local emeta = core.get_meta(ectx.pos)
-                                phonograph.set_song(emeta, "")
-
-                                phonograph.node_gui:update_where(function(uplayer, uctx)
-                                    return vector.equals(uctx.pos, ectx.pos)
-                                        and uplayer:get_player_name() ~= eplayer:get_player_name()
-                                end)
-
-                                return true
-                            end,
-                        } or gui.Button {
-                            -- not the playing song
-                            w = 1.5, h = 1,
-                            label = S("Play"),
-                            expand = true, align_h = "right", align_v = "bottom",
-                            on_event = function(eplayer, ectx)
-                                if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
-
-                                local emeta = core.get_meta(ectx.pos)
-                                phonograph.set_song(emeta, ctx.selected_song)
-
-                                phonograph.node_gui:update_where(function(uplayer, uctx)
-                                    return vector.equals(uctx.pos, ectx.pos)
-                                        and uplayer:get_player_name() ~= eplayer:get_player_name()
-                                end)
-
-                                return true
-                            end
-                        }) or gui.Nil {},
+                    gui.Label {
+                        max_w = 6, w = 6,
+                        max_h = 0.5, h = 0.5,
+                        label = song.artist or album.artist or S("Unknown artist")
+                    },
+                    gui.Label {
+                        max_w = 6, w = 6,
+                        max_h = 1, h = 1,
+                        label = song.short_description or ""
+                    },
                 },
+                gui.Image {
+                    w = 2, h = 2,
+                    texture_name = album.cover or "phonograph_node_temp_ok.png",
+                    expand = true, align_h = "right",
+                },
+            },
+            gui.Textarea {
+                max_w = 9, w = 9,
+                max_h = 4, h = 4,
+                label =
+                    (song.long_description or S("No descriptions given.")) .. "\n\n" .. table.concat(footer, "\n"),
+            },
+            gui.Hbox {
+                max_w = 9,
+                max_h = 1, h = 1,
+                expand = true, align_v = "bottom",
+                gui.Label {
+                    max_w = 4, w = 4, max_h = 1, h = 1,
+                    expand = true,
+                    label = (#songs_downloading ~= 0) and ((#songs_downloading == 1)
+                        and S("Downloading @1", phonograph.registered_songs[songs_downloading[1]].title)
+                        or S("Downloading @1 songs", #songs_downloading)) or "",
+                },
+                phonograph.check_interact_privs(player, ctx.pos) and get_volume_widget(ctx) or gui.Nil {},
+                phonograph.check_interact_privs(player, ctx.pos) and (
+                    (meta:get_string("curr_song") == ctx.selected_song) and gui.Button {
+                        -- is the playing song
+                        w = 1.5, h = 1,
+                        label = S("Stop"),
+                        expand = true, align_h = "right", align_v = "bottom",
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+
+                            local emeta = core.get_meta(ectx.pos)
+                            phonograph.set_song(emeta, "")
+
+                            phonograph.node_gui:update_where(function(uplayer, uctx)
+                                return vector.equals(uctx.pos, ectx.pos)
+                                    and uplayer:get_player_name() ~= eplayer:get_player_name()
+                            end)
+
+                            return true
+                        end,
+                    } or gui.Button {
+                        -- not the playing song
+                        w = 1.5, h = 1,
+                        label = S("Play"),
+                        expand = true, align_h = "right", align_v = "bottom",
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+
+                            local emeta = core.get_meta(ectx.pos)
+                            phonograph.set_song(emeta, ctx.selected_song)
+
+                            phonograph.node_gui:update_where(function(uplayer, uctx)
+                                return vector.equals(uctx.pos, ectx.pos)
+                                    and uplayer:get_player_name() ~= eplayer:get_player_name()
+                            end)
+
+                            return true
+                        end
+                    }) or gui.Nil {},
             },
         }
     end
@@ -288,7 +294,7 @@ local generate_albums_list = function(_, ctx)
         elseif ctx.curr_album == name then
             title = core.get_color_escape_sequence("orange") .. title
         end
-        button_list[#button_list+1] = gui.HBox {
+        button_list[#button_list + 1] = gui.HBox {
             gui.Image {
                 w = 1, h = 1,
                 texture_name = def.cover or "phonograph_node_temp_ok.png",
@@ -321,7 +327,7 @@ local generate_songs_list = function(_, ctx)
         elseif ctx.curr_song == name then
             title = core.get_color_escape_sequence("orange") .. title
         end
-        button_list[#button_list+1] = gui.Button {
+        button_list[#button_list + 1] = gui.Button {
             w = 4, h = 1,
             label = title,
             on_event = function(_, ectx)
@@ -395,7 +401,7 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                         end
                     end, e_player:get_player_name())
                 end,
-            } or gui.Nil{},
+            } or gui.Nil {},
             gui.ButtonExit {
                 w = 0.5, h = 0.5,
                 label = "x",

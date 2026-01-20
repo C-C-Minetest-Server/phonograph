@@ -23,7 +23,7 @@ Idle Phonograph=闲置的留声机
 
 ##[ src/gui.lua ]##
 Volume:=音量：
-Select an album to start exploring the universe of songs=探寻音乐的世界，从选择专辑开始。
+Select an album to start exploring the universe of songs.=探寻音乐的世界，从选择专辑开始。
 ERROR: Album @1 not found.=错误：找不到专辑 @1
 No descriptions given.=没有描述。
 ERROR: Song @1 not found.=错误：找不到音轨 @1

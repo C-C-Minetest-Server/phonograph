@@ -23,7 +23,7 @@ Idle Phonograph=
 
 ##[ src/gui.lua ]##
 Volume:=
-Select an album to start exploring the universe of songs=
+Select an album to start exploring the universe of songs.=
 ERROR: Album @1 not found.=
 No descriptions given.=
 ERROR: Song @1 not found.=
