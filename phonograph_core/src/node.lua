@@ -81,26 +81,7 @@ elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
     })
 end
 
-local phonograph_def = {
-    description = S("Phonograph"),
-    tiles = { "phonograph_node_temp.png" },
-    groups = table.copy(dig_groups),
-    sounds = sounds,
-
-    on_construct = function(pos)
-        local meta = core.get_meta(pos)
-        meta:set_string("infotext", S("Idle Phonograph"))
-    end,
-    on_destruct = function(pos)
-        phonograph.stop_phonograph(pos)
-    end,
-    on_rightclick = function(pos, _, player)
-        phonograph.node_gui:show(player, { pos = pos })
-    end,
-}
-phonograph_def.groups.phonograph_speaker = 2    -- Is a speaker and the controller is itself
-phonograph_def.groups.phonograph_controller = 2 -- Is a controller and the speaker is itself
-core.register_node(":phonograph:phonograph", phonograph_def)
+-- Common
 
 local CONTROLLER_LINK_FORMSPEC =
     "field[channel_id;" ..
@@ -111,83 +92,149 @@ local CONTROLLER_VOLU_FORMSPEC =
     FS("Volume (0 < volume <= 100)%") ..
     ";]"
 
+function phonograph.phonograph_on_construct(pos)
+    local meta = core.get_meta(pos)
+    return meta:set_string("infotext", S("Idle Phonograph"))
+end
+
+function phonograph.phonograph_on_rightclick(pos, _, player)
+    phonograph.node_gui:show(player, { pos = pos })
+end
+
+-- Simple only
+
+function phonograph.simple_phonograph_on_construct(pos)
+    return phonograph.stop_phonograph(pos)
+end
+
+-- Controller only
+
 local last_interacted_phonograph_speaker = {}
 
-local phonograph_controller_def = {
+function phonograph.controller_on_destruct(pos)
+    phonograph.stop_phonograph(pos)
+    phonograph.controller_disconnect_all_from_controller(pos)
+end
+
+function phonograph.controller_on_punch(pos, _, puncher)
+    if not puncher:is_player() then return end
+    local name = puncher:get_player_name()
+    if not last_interacted_phonograph_speaker[name] then return end
+    if core.is_protected(pos, name) then
+        core.record_protection_violation(pos, name)
+        return
+    end
+
+    local speaker_pos = last_interacted_phonograph_speaker[name]
+    core.show_formspec(
+        name,
+        "phonograph:controller_link:" .. table.concat({
+            speaker_pos.x, speaker_pos.y, speaker_pos.z,
+            pos.x, pos.y, pos.z
+        }, ","),
+        CONTROLLER_LINK_FORMSPEC)
+    last_interacted_phonograph_speaker[name] = nil
+end
+
+-- Speakers only
+
+function phonograph.speaker_on_construct(pos)
+    local meta = core.get_meta(pos)
+    return meta:set_string("infotext", S("Disconnected Phonograph Speaker"))
+end
+
+function phonograph.speaker_on_destruct(pos)
+    phonograph.speaker_do_disconnect(pos)
+
+    for name, d_pos in pairs(last_interacted_phonograph_speaker) do
+        if vector.equals(pos, d_pos) then
+            last_interacted_phonograph_speaker[name] = nil
+        end
+    end
+end
+
+function phonograph.speaker_on_punch(pos, _, puncher)
+    if not puncher:is_player() then return end
+    local name = puncher:get_player_name()
+    if core.is_protected(pos, name) then
+        core.record_protection_violation(pos, name)
+        return
+    end
+
+    last_interacted_phonograph_speaker[name] = pos
+    core.chat_send_player(name, S("Punch a phonograph controller to connect this speaker."))
+end
+
+function phonograph.register_simple_phonograph(name, def)
+    if string.sub(name, 1, 1) ~= ":" then
+        name = ":" .. name
+    end
+    def = table.copy(def)
+
+    def.groups = def.groups or {}
+    def.groups.phonograph_speaker = 2    -- Is a speaker and the controller is itself
+    def.groups.phonograph_controller = 2 -- Is a controller and the speaker is itself
+
+    def.on_construct = phonograph.phonograph_on_construct
+    def.on_destruct = phonograph.simple_phonograph_on_construct
+    def.on_rightclick = phonograph.phonograph_on_rightclick
+
+    return core.register_node(name, def)
+end
+
+function phonograph.register_phonograph_controller(name, def)
+    if string.sub(name, 1, 1) ~= ":" then
+        name = ":" .. name
+    end
+    def = table.copy(def)
+
+    def.groups = def.groups or {}
+    def.groups.phonograph_controller = 1 -- Is a normal controller
+
+    def.on_construct = phonograph.phonograph_on_construct
+    def.on_destruct = phonograph.controller_on_destruct
+    def.on_rightclick = phonograph.phonograph_on_rightclick
+    def.on_punch = phonograph.controller_on_punch
+
+    return core.register_node(name, def)
+end
+
+function phonograph.register_phonograph_speaker(name, def)
+    if string.sub(name, 1, 1) ~= ":" then
+        name = ":" .. name
+    end
+    def = table.copy(def)
+
+    def.groups = def.groups or {}
+    def.groups.phonograph_speaker = 1 -- Is a normal speaker
+
+    def.on_construct = phonograph.speaker_on_construct
+    def.on_destruct = phonograph.speaker_on_destruct
+    def.on_punch = phonograph.speaker_on_punch
+
+    return core.register_node(name, def)
+end
+
+phonograph.register_simple_phonograph("phonograph:phonograph", {
+    description = S("Phonograph"),
+    tiles = { "phonograph_node_temp.png" },
+    sounds = sounds,
+    groups = dig_groups,
+})
+
+phonograph.register_phonograph_controller("phonograph:phonograph_controller", {
     description = S("Phonograph Controller"),
     tiles = { "phonograph_node_temp.png" },
-    groups = table.copy(dig_groups),
     sounds = sounds,
+    groups = dig_groups,
+})
 
-    on_construct = function(pos)
-        local meta = core.get_meta(pos)
-        meta:set_string("infotext", S("Idle Phonograph"))
-    end,
-    on_destruct = function(pos)
-        phonograph.stop_phonograph(pos)
-        phonograph.controller_disconnect_all_from_controller(pos)
-    end,
-    on_rightclick = function(pos, _, player)
-        phonograph.node_gui:show(player, { pos = pos })
-    end,
-
-    on_punch = function(pos, _, puncher)
-        if not puncher:is_player() then return end
-        local name = puncher:get_player_name()
-        if not last_interacted_phonograph_speaker[name] then return end
-        if core.is_protected(pos, name) then
-            core.record_protection_violation(pos, name)
-            return
-        end
-
-        local speaker_pos = last_interacted_phonograph_speaker[name]
-        core.show_formspec(
-            name,
-            "phonograph:controller_link:" .. table.concat({
-                speaker_pos.x, speaker_pos.y, speaker_pos.z,
-                pos.x, pos.y, pos.z
-            }, ","),
-            CONTROLLER_LINK_FORMSPEC)
-        last_interacted_phonograph_speaker[name] = nil
-    end,
-}
-phonograph_controller_def.groups.phonograph_controller = 1 -- Is a normal controller
-core.register_node(":phonograph:phonograph_controller", phonograph_controller_def)
-
-local phonograph_speaker_def = {
+phonograph.register_phonograph_speaker("phonograph:phonograph_speaker", {
     description = S("Phonograph Speaker"),
     tiles = { "phonograph_node_temp_ok.png" },
-    groups = table.copy(dig_groups),
     sounds = sounds,
-
-    on_construct = function(pos)
-        local meta = core.get_meta(pos)
-        meta:set_string("infotext", S("Disconnected Phonograph Speaker"))
-    end,
-    on_destruct = function(pos)
-        phonograph.speaker_do_disconnect(pos)
-
-        for name, d_pos in pairs(last_interacted_phonograph_speaker) do
-            if vector.equals(pos, d_pos) then
-                last_interacted_phonograph_speaker[name] = nil
-            end
-        end
-    end,
-
-    on_punch = function(pos, _, puncher)
-        if not puncher:is_player() then return end
-        local name = puncher:get_player_name()
-        if core.is_protected(pos, name) then
-            core.record_protection_violation(pos, name)
-            return
-        end
-
-        last_interacted_phonograph_speaker[name] = pos
-        core.chat_send_player(name, S("Punch a phonograph controller to connect this speaker."))
-    end,
-}
-phonograph_speaker_def.groups.phonograph_speaker = 1 -- Is a normal speaker
-core.register_node(":phonograph:phonograph_speaker", phonograph_speaker_def)
+    groups = dig_groups,
+})
 
 core.register_on_player_receive_fields(function(player, formname, fields)
     local sub_name = string.sub(formname, 0, 27)

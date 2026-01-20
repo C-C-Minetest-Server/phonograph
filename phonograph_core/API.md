@@ -131,3 +131,11 @@ phonograph_extract ()
     ffmpeg -f lavfi -t 3 -i "anullsrc=channel_layout=mono:sample_rate=${SR}" -i "$INPUT" -filter_complex "[1:a]pan=mono|c0=c${CHANNEL_ID}[target_ch];[0:a][target_ch]concat=n=2:v=0:a=1[out]" -map "[out]" -map_metadata 1 "$OUTPUT"
 }
 ```
+
+## Custom phonograph nodes registration
+
+* `phonograph.register_simple_phonograph(name, def)`
+* `phonograph.register_phonograph_controller(name, def)`
+* `phonograph.register_phonograph_speaker(name, def)`
+
+Registers respective nodes. Node interaction callbacks in `def` will be overriden.
