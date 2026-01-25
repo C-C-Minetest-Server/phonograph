@@ -28,14 +28,13 @@ phonograph.internal = {
 
 local MP = core.get_modpath("phonograph_core")
 for _, name in ipairs({
-    "messages",
-    "registrations", -- depends: messages
-    "functions",     -- depends: registrations
-    "dynamic",       -- depends: registrations
-    "player",        -- depends: functions, settings, dynamic
+    "registrations",
+    "functions", -- depends: registrations
+    "dynamic",   -- depends: registrations
+    "player",    -- depends: functions, settings, dynamic
     "licenses",
-    "gui",           -- depends: functions, registrations
-    "node",          -- depends: gui
+    "gui",       -- depends: functions, registrations
+    "node",      -- depends: gui
     "teacher",
 }) do
     dofile(MP .. "/src/" .. name .. ".lua")
