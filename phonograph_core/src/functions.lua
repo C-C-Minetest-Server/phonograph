@@ -196,7 +196,7 @@ function phonograph.update_meta(meta)
         meta:set_string("song_artist", "")
     else
         local song = phonograph.registered_songs[curr_song]
-        local album = phonograph.registered_albums[song.album] or {}
+        local album = song and phonograph.registered_albums[song.album] or {}
         if song then
             local volume = meta:get_int("sound_volume")
             if volume == 0 then

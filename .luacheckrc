@@ -20,6 +20,7 @@ read_globals = {
 
     "logging", "flow", "default", "hades_sounds",
     "teacher", "modlib", "background_music",
+    "digilines",
 
     table = {
         fields = {

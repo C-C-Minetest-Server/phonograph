@@ -101,6 +101,70 @@ function phonograph.phonograph_on_rightclick(pos, _, player)
     phonograph.node_gui:show(player, { pos = pos })
 end
 
+local digilines_def = nil
+if core.global_exists("digilines") then
+    function phonograph.phonograph_on_digiline_receive(pos, _, channel, msg)
+        local meta = core.get_meta(pos)
+        local setchan = meta:get_string("channel")
+        if setchan == "" or channel ~= setchan then return end
+
+        if type(msg) == "string" then
+            msg = msg == "" and { command = "stop" } or {
+                command = "play",
+                song = msg,
+            }
+        elseif type(msg) ~= "table" then
+            return
+        end
+
+        local return_table = {
+            command_responce = msg.command,
+        }
+        if msg.command == "play" and type(msg.song) == "string" and phonograph.registered_songs[msg.song] then
+            if type(msg.song) ~= "string" then
+                return_table.error = "msg_song_type_error"
+            elseif not phonograph.registered_songs[msg.song] then
+                return_table.error = "msg_song_not_found"
+            else
+                return_table.ok = true
+                phonograph.set_song(meta, msg.song)
+                phonograph.update_meta(meta)
+            end
+        elseif msg.command == "stop" then
+            return_table.ok = true
+            phonograph.set_song(meta, "")
+            phonograph.update_meta(meta)
+        elseif msg.command == "set_volume" and type(msg.volume) == "number" then
+            if type(msg.volume) ~= "number" then
+                return_table.error = "msg_volume_type_error"
+            elseif msg.volume <= 0 or msg.volume > 100 then
+                return_table.error = "msg_volume_out_of_range"
+            else
+                return_table.ok = true
+                phonograph.set_volume(meta, tostring(msg.volume))
+                phonograph.update_meta(meta)
+            end
+        elseif msg.command == "get" then
+            return_table.ok = true
+            return_table.curr_song = meta:get_string("curr_song")
+            return_table.volume = tonumber(meta:get_string("sound_volume")) or 100
+        else
+            return_table.error = "msg_command_no_match"
+        end
+
+        return_table.ok = return_table.ok or false
+
+        digilines.receptor_send(pos, digilines.rules.default, channel, return_table)
+    end
+
+    digilines_def = {
+        receptor = {},
+        effector = {
+            action = phonograph.phonograph_on_digiline_receive,
+        }
+    }
+end
+
 -- Simple only
 
 function phonograph.simple_phonograph_on_construct(pos)
@@ -147,6 +211,8 @@ function phonograph.register_simple_phonograph(name, def)
     def.on_destruct = phonograph.simple_phonograph_on_construct
     def.on_rightclick = phonograph.phonograph_on_rightclick
 
+    def.digilines = digilines_def
+
     return core.register_node(name, def)
 end
 
@@ -162,6 +228,8 @@ function phonograph.register_phonograph_controller(name, def)
     def.on_construct = phonograph.phonograph_on_construct
     def.on_destruct = phonograph.controller_on_destruct
     def.on_rightclick = phonograph.phonograph_on_rightclick
+
+    def.digilines = digilines_def
 
     return core.register_node(name, def)
 end

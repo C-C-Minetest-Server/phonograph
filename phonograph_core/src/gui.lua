@@ -216,7 +216,7 @@ local get_page_content = {
             config_displays[#config_displays + 1] = gui.VBox {
                 gui.Label {
                     w = 5, max_w = 5,
-                    label = S("Connected Speakers:"),
+                    label = S("Connected Speakers"),
                     expand = true, align_h = "left",
                     style = {
                         font = "bold",
@@ -229,6 +229,39 @@ local get_page_content = {
                         "Use a phonograph controller for multiple speakers."),
                     expand = true, align_h = "center",
                 },
+            }
+        end
+
+        -- Digiline channel
+        do
+            config_displays[#config_displays + 1] = gui.VBox {
+                gui.Label {
+                    w = 5, max_w = 5,
+                    label = S("Digiline Channel"),
+                    expand = true, align_h = "left",
+                    style = {
+                        font = "bold",
+                        font_size = "*1.5"
+                    },
+                },
+                gui.HBox {
+                    gui.Field {
+                        w = 3, max_w = 3, h = 0.7, max_h = 0.7,
+                        name = "config_digiline_channel",
+                        default = core.get_meta(ctx.pos):get_string("channel") or "",
+                    },
+                    gui.Button {
+                        w = 1.5, max_w = 1.5, h = 0.7, max_h = 0.7,
+                        label = S("Confirm"),
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+                            if type(ectx.form.config_digiline_channel) == "string" then
+                                core.get_meta(ectx.pos):set_string("channel", ectx.form.config_digiline_channel)
+                                return true
+                            end
+                        end,
+                    }
+                }
             }
         end
 
