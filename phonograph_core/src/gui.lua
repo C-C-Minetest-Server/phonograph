@@ -80,7 +80,23 @@ local function get_volume_widget(ctx)
     }
 end
 
+local function error_page(message)
+    return gui.VBox {
+        min_h = 10, min_w = 9,
+        gui.Image {
+            w = 3, h = 3,
+            texture_name = "phonograph_node_temp_error.png",
+            expand = true, align_h = "center", align_v = "center",
+        },
+        gui.Label {
+            label = S("Error: @1", message),
+            expand = true, align_h = "center", align_v = "center",
+        }
+    }
+end
+
 local get_page_content = {
+    -- Default interface
     none = function()
         return gui.VBox {
             min_h = 10, min_w = 9,
@@ -95,21 +111,154 @@ local get_page_content = {
             }
         }
     end,
+
+    -- Special pages
+    config = function(player, ctx)
+        if not phonograph.check_interact_privs(player, ctx.pos) then
+            return error_page(S("You do not have permission to configure this phonograph."))
+        end
+
+        local config_displays = {}
+
+        -- Connected Speakers
+        local controller_type = core.get_item_group(core.get_node(ctx.pos).name, "phonograph_controller")
+        if controller_type == 1 then
+            local connected_speakers = phonograph.controller_get_connected_speakers(ctx.pos)
+            local speaker_lines = {}
+
+            speaker_lines[#speaker_lines + 1] = gui.Box { w = 0.05, h = 0.05, color = "grey" }
+            speaker_lines[#speaker_lines + 1] = gui.HBox {
+                gui.Label {
+                    max_w = 2, w = 2,
+                    max_h = 0.5, h = 0.5,
+                    label = S("Speaker Position"),
+                    style = {
+                        font = "bold",
+                    },
+                },
+                gui.Label {
+                    max_w = 1, w = 1,
+                    max_h = 0.5, h = 0.5,
+                    label = S("Channel"),
+                    style = {
+                        font = "bold",
+                    },
+                },
+                gui.Label {
+                    max_w = 1, w = 1,
+                    max_h = 0.5, h = 0.5,
+                    label = S("Volume"),
+                    style = {
+                        font = "bold",
+                    },
+                },
+            }
+            speaker_lines[#speaker_lines + 1] = gui.Box { w = 0.05, h = 0.05, color = "grey" }
+            for _, spec in ipairs(connected_speakers) do
+                local speaker_pos = spec[1]
+                local channel = spec[2]
+                local volume = spec[3] or 100
+                speaker_lines[#speaker_lines + 1] = gui.HBox {
+                    gui.Label {
+                        max_w = 2, w = 2,
+                        max_h = 0.5, h = 0.5,
+                        label = S("@1", core.pos_to_string(speaker_pos)),
+                    },
+                    gui.Label {
+                        max_w = 1, w = 1,
+                        max_h = 0.5, h = 0.5,
+                        label = phonograph.get_channel_name(channel),
+                    },
+                    gui.Label {
+                        max_w = 1, w = 1,
+                        max_h = 0.5, h = 0.5,
+                        label = tostring(volume),
+                    },
+                    gui.Button {
+                        max_w = 1.5, w = 1.5,
+                        max_h = 0.5, h = 0.5,
+                        label = S("Disconnect"),
+                        on_event = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+                            phonograph.stop_phonograph(ectx.pos)
+                            phonograph.controller_disconnect_speaker_from_controller(ectx.pos, speaker_pos)
+                            phonograph.node_gui:update_where(function(uplayer, uctx)
+                                return vector.equals(uctx.pos, ectx.pos)
+                                    and uplayer:get_player_name() ~= eplayer:get_player_name()
+                            end)
+                            return true
+                        end,
+                    },
+                }
+                speaker_lines[#speaker_lines + 1] = gui.Box { w = 0.05, h = 0.05, color = "grey" }
+            end
+
+            if #connected_speakers == 0 then
+                speaker_lines[#speaker_lines + 1] = gui.Label {
+                    label = S("No connected speakers. Punch a speaker and then punch the controller to connect it."),
+                    expand = true, align_h = "center",
+                }
+                speaker_lines[#speaker_lines + 1] = gui.Box { w = 0.05, h = 0.05, color = "grey" }
+            end
+
+            config_displays[#config_displays + 1] = gui.VBox {
+                gui.Label {
+                    label = S("Connected Speakers:"),
+                    expand = true, align_h = "left",
+                    style = {
+                        font = "bold",
+                        font_size = "*1.5"
+                    },
+                },
+                unpack(speaker_lines),
+            }
+        else
+            config_displays[#config_displays + 1] = gui.VBox {
+                gui.Label {
+                    w = 5, max_w = 5,
+                    label = S("Connected Speakers:"),
+                    expand = true, align_h = "left",
+                    style = {
+                        font = "bold",
+                        font_size = "*1.5"
+                    },
+                },
+                gui.Label {
+                    w = 5, max_w = 5,
+                    label = S("This controller integrates a speaker in itself. " ..
+                        "Use a phonograph controller for multiple speakers."),
+                    expand = true, align_h = "center",
+                },
+            }
+        end
+
+        config_displays[#config_displays + 1] = gui.HBox {
+            gui.Button {
+                w = 2, h = 0.5,
+                label = S("Back"),
+                expand = true, align_h = "right",
+                on_event = function(_, ectx)
+                    ectx.page_override = nil
+                    return true
+                end,
+            },
+        }
+
+        return gui.VBox {
+            min_h = 10, min_w = 9,
+            gui.ScrollableVBox {
+                name = "svbox_page_config",
+                min_w = 8.25, expand = true,
+                unpack(config_displays),
+            },
+        }
+    end,
+
+    -- Album and Songs
     album = function(_, ctx)
         local album = phonograph.registered_albums[ctx.selected_album]
         if not album then
-            return gui.VBox {
-                min_h = 10, min_w = 9,
-                gui.Image {
-                    w = 3, h = 3,
-                    texture_name = "phonograph_node_temp_error.png",
-                    expand = true, align_h = "center", align_v = "center",
-                },
-                gui.Label {
-                    label = S("ERROR: Album @1 not found.", ctx.selected_album),
-                    expand = true, align_h = "center", align_v = "center",
-                }
-            }
+            return error_page(S("Album @1 not found.", ctx.selected_album))
         end
 
         return gui.VBox {
@@ -143,37 +292,13 @@ local get_page_content = {
     song = function(player, ctx)
         local song = phonograph.registered_songs[ctx.selected_song]
         if not song then
-            return gui.VBox {
-                min_h = 10, min_w = 9,
-                gui.Image {
-                    w = 3, h = 3,
-                    texture_name = "phonograph_node_temp_error.png",
-                    expand = true, align_h = "center", align_v = "center",
-                },
-                gui.Label {
-                    max_w = 8, w = 8,
-                    label = S("ERROR: Song @1 not found.", ctx.selected_song),
-                    expand = true, align_h = "center", align_v = "center",
-                }
-            }
+            return error_page(S("Song @1 not found.", ctx.selected_song))
         end
 
         ctx.selected_album = song.album
         local album = phonograph.registered_albums[song.album]
         if not album then
-            return gui.VBox {
-                min_h = 10, min_w = 9,
-                gui.Image {
-                    w = 3, h = 3,
-                    texture_name = "phonograph_node_temp_error.png",
-                    expand = true, align_h = "center", align_v = "center",
-                },
-                gui.Label {
-                    max_w = 8, w = 8,
-                    label = S("ERROR: Album @1 not found.", ctx.selected_album),
-                    expand = true, align_h = "center", align_v = "center",
-                }
-            }
+            return error_page(S("Album @1 not found.", ctx.selected_album))
         end
 
         local meta = core.get_meta(ctx.pos)
@@ -194,7 +319,7 @@ local get_page_content = {
             footer[#footer + 1] = license
         end
 
-        footer[#footer+1] = S("Song ID: @1", ctx.selected_song)
+        footer[#footer + 1] = S("Song ID: @1", ctx.selected_song)
 
         local songs_downloading = phonograph.get_downloading_songs(player:get_player_name())
 
@@ -308,6 +433,7 @@ local generate_albums_list = function(_, ctx)
                 on_event = function(_, ectx)
                     ectx.selected_album = name
                     ectx.selected_song = nil
+                    ectx.page_override = nil
                     return true
                 end,
             },
@@ -334,6 +460,7 @@ local generate_songs_list = function(_, ctx)
             label = title,
             on_event = function(_, ectx)
                 ectx.selected_song = name
+                ectx.page_override = nil
                 return true
             end,
         }
@@ -379,7 +506,9 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
     end
 
     local tab_func = get_page_content.none
-    if ctx.selected_song then
+    if get_page_content[ctx.page_override] then
+        tab_func = get_page_content[ctx.page_override]
+    elseif ctx.selected_song then
         tab_func = get_page_content.song
     elseif ctx.selected_album then
         tab_func = get_page_content.album
@@ -393,6 +522,14 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                 label = S("Phonograph"),
                 expand = true, align_h = "left"
             },
+            phonograph.check_interact_privs(player, ctx.pos) and gui.Button {
+                w = 1.5, h = 0.5,
+                label = S("Config"),
+                on_event = function(_, ectx)
+                    ectx.page_override = "config"
+                    return true
+                end,
+            } or gui.Nil {},
             teacher_exists and gui.ButtonExit {
                 label = "?",
                 w = 0.5, h = 0.5,
