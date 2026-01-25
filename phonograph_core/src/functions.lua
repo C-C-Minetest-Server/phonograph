@@ -23,6 +23,15 @@
 -- local logger = phonograph.internal.logger:sublogger("functions")
 local S = phonograph.internal.S
 
+local channel_names = {
+    [-1] = S("mono"),
+    [0]  = S("left"),
+    [1]  = S("right"),
+}
+function phonograph.get_channel_name(channel_id)
+    return channel_names[channel_id] or S("channel #@1", channel_id)
+end
+
 -- Return true if a player can interact with that phonograph
 function phonograph.check_interact_privs(name, pos)
     if type(name) ~= "string" then
@@ -94,7 +103,7 @@ function phonograph.controller_connect_to_speaker(pos, speaker_pos, channel, vol
     speaker_meta:set_int("phonograph_controller_pos_y", pos.y)
     speaker_meta:set_int("phonograph_controller_pos_z", pos.z)
     speaker_meta:set_string("infotext", S("Connected Phonograph Speaker: @1 on @2 at volume @3%",
-        core.pos_to_string(pos), channel >= 0 and ("multichannel #" .. channel) or "mono", volume))
+        core.pos_to_string(pos), phonograph.get_channel_name(channel), volume))
 
     local meta = core.get_meta(pos)
     local connected_speakers = phonograph.controller_get_connected_speakers(pos)

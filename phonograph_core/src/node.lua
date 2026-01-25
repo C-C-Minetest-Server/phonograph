@@ -279,7 +279,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 
     if sub_name == "phonograph:controller_link:" then
         local channel = fields.channel_id
-        channel = channel and string.trim(channel)
+        channel = type(channel) == "string" and channel:lower():trim()
         if not channel or channel == "" then
             core.chat_send_player(name, S("Invalid channel ID!"))
             return
@@ -317,8 +317,9 @@ core.register_on_player_receive_fields(function(player, formname, fields)
         phonograph.stop_phonograph(controller_pos)
         phonograph.speaker_do_disconnect(speaker_pos)
         if phonograph.controller_connect_to_speaker(controller_pos, speaker_pos, channel, volume) then
-            core.chat_send_player(name, S("Successfully connected @1 to @2 on channel #@3 at volume @4%",
-                core.pos_to_string(speaker_pos), core.pos_to_string(speaker_pos), channel, volume))
+            core.chat_send_player(name, S("Successfully connected @1 to @2 on @3 at volume @4%",
+                core.pos_to_string(speaker_pos), core.pos_to_string(speaker_pos),
+                phonograph.get_channel_name(channel), volume))
         end
     end
 end)
