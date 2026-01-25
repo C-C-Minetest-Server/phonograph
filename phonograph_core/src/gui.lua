@@ -194,6 +194,8 @@ local get_page_content = {
             footer[#footer + 1] = license
         end
 
+        footer[#footer+1] = S("Song ID: @1", ctx.selected_song)
+
         local songs_downloading = phonograph.get_downloading_songs(player:get_player_name())
 
         return gui.VBox {
