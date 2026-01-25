@@ -116,26 +116,6 @@ function phonograph.controller_on_destruct(pos)
     phonograph.controller_disconnect_all_from_controller(pos)
 end
 
-function phonograph.controller_on_punch(pos, _, puncher)
-    if not puncher:is_player() then return end
-    local name = puncher:get_player_name()
-    if not last_interacted_phonograph_speaker[name] then return end
-    if core.is_protected(pos, name) then
-        core.record_protection_violation(pos, name)
-        return
-    end
-
-    local speaker_pos = last_interacted_phonograph_speaker[name]
-    core.show_formspec(
-        name,
-        "phonograph:controller_link:" .. table.concat({
-            speaker_pos.x, speaker_pos.y, speaker_pos.z,
-            pos.x, pos.y, pos.z
-        }, ","),
-        CONTROLLER_LINK_FORMSPEC)
-    last_interacted_phonograph_speaker[name] = nil
-end
-
 -- Speakers only
 
 function phonograph.speaker_on_construct(pos)
@@ -151,18 +131,6 @@ function phonograph.speaker_on_destruct(pos)
             last_interacted_phonograph_speaker[name] = nil
         end
     end
-end
-
-function phonograph.speaker_on_punch(pos, _, puncher)
-    if not puncher:is_player() then return end
-    local name = puncher:get_player_name()
-    if core.is_protected(pos, name) then
-        core.record_protection_violation(pos, name)
-        return
-    end
-
-    last_interacted_phonograph_speaker[name] = pos
-    core.chat_send_player(name, S("Punch a phonograph controller to connect this speaker."))
 end
 
 function phonograph.register_simple_phonograph(name, def)
@@ -194,7 +162,6 @@ function phonograph.register_phonograph_controller(name, def)
     def.on_construct = phonograph.phonograph_on_construct
     def.on_destruct = phonograph.controller_on_destruct
     def.on_rightclick = phonograph.phonograph_on_rightclick
-    def.on_punch = phonograph.controller_on_punch
 
     return core.register_node(name, def)
 end
@@ -210,7 +177,6 @@ function phonograph.register_phonograph_speaker(name, def)
 
     def.on_construct = phonograph.speaker_on_construct
     def.on_destruct = phonograph.speaker_on_destruct
-    def.on_punch = phonograph.speaker_on_punch
 
     return core.register_node(name, def)
 end
@@ -235,6 +201,41 @@ phonograph.register_phonograph_speaker("phonograph:phonograph_speaker", {
     sounds = sounds,
     groups = dig_groups,
 })
+
+core.register_on_punchnode(function(pos, node, puncher)
+    if not puncher:is_player() then return end
+    local name = puncher:get_player_name()
+
+    local node_name = node.name
+
+    if core.get_item_group(node_name, "phonograph_speaker") == 1 then
+        if core.is_protected(pos, name) then
+            core.record_protection_violation(pos, name)
+            return
+        end
+        last_interacted_phonograph_speaker[name] = pos
+        core.chat_send_player(name, S("Punch a phonograph controller to connect this speaker."))
+    elseif core.get_item_group(node_name, "phonograph_controller") == 1 then
+        if not last_interacted_phonograph_speaker[name] then return end
+        if core.is_protected(pos, name) then
+            core.record_protection_violation(pos, name)
+            return
+        end
+
+        local speaker_pos = last_interacted_phonograph_speaker[name]
+        core.show_formspec(
+            name,
+            "phonograph:controller_link:" .. table.concat({
+                speaker_pos.x, speaker_pos.y, speaker_pos.z,
+                pos.x, pos.y, pos.z
+            }, ","),
+            CONTROLLER_LINK_FORMSPEC)
+        last_interacted_phonograph_speaker[name] = nil
+    elseif last_interacted_phonograph_speaker[name] then
+        last_interacted_phonograph_speaker[name] = nil
+        core.chat_send_player(name, S("Not a phonograph controller, cancelling."))
+    end
+end)
 
 core.register_on_player_receive_fields(function(player, formname, fields)
     local sub_name = string.sub(formname, 0, 27)
