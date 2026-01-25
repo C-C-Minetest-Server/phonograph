@@ -1,6 +1,10 @@
 # textdomain: phonograph_core
 
 ##[ src/functions.lua ]##
+mono=
+left=
+right=
+channel #@1=
 Connected Phonograph Speaker: @1 on @2 at volume @3%=
 Playing: @1=
 Volume: @1%=
@@ -23,20 +27,35 @@ Idle Phonograph=
 
 ##[ src/gui.lua ]##
 Volume:=
+Error: @1=
 Select an album to start exploring the universe of songs.=
-ERROR: Album @1 not found.=
+You do not have permission to configure this phonograph.=
+Speaker Position=
+Channel=
+Volume=
+Disconnect=
+No connected speakers. Punch a speaker and then punch the controller to connect it.=
+Connected Speakers=
+This controller integrates a speaker in itself. Use a phonograph controller for multiple speakers.=
+Digiline Channel=
+Confirm=
+Back=
+Album @1 not found.=
 No descriptions given.=
-ERROR: Song @1 not found.=
+Song @1 not found.=
 This song comes with @1 audio.=
 stereo=
 @1-channel=
 No license information given.=
+Song ID: @1=
 Downloading @1=
 Downloading @1 songs=
 Stop=
 Play=
-ERROR: The node at @1 is not a phonograph.=
+ERROR: @1=
+The node at @1 is not a phonograph.=
 Exit=
+Config=
 
 ##[ src/gui.lua ]##
 ##[ src/licenses.lua ]##
@@ -46,20 +65,16 @@ Unknown artist=
 This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
 This work by @1 is licensed under @2. To view a copy of this license, visit @3=
 
-##[ src/messages.lua ]##
-Mono=
-Left=
-Right=
-
 ##[ src/node.lua ]##
 Channel to play (mono, left, right)=
 Volume (0 < volume <@= 100)%=
 Phonograph Controller=
 Phonograph Speaker=
 Punch a phonograph controller to connect this speaker.=
+Not a phonograph controller, cancelling.=
 Invalid channel ID!=
 Volume not supplied or out of range!=
-Successfully connected @1 to @2 on channel #@3 at volume @4%=
+Successfully connected @1 to @2 on @3 at volume @4%=
 
 ##[ src/teacher.lua ]##
 The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=

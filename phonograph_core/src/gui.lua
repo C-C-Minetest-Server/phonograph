@@ -162,7 +162,7 @@ local get_page_content = {
                     gui.Label {
                         max_w = 2, w = 2,
                         max_h = 0.5, h = 0.5,
-                        label = S("@1", core.pos_to_string(speaker_pos)),
+                        label = core.pos_to_string(speaker_pos),
                     },
                     gui.Label {
                         max_w = 1, w = 1,
@@ -203,7 +203,7 @@ local get_page_content = {
 
             config_displays[#config_displays + 1] = gui.VBox {
                 gui.Label {
-                    label = S("Connected Speakers:"),
+                    label = S("Connected Speakers"),
                     expand = true, align_h = "left",
                     style = {
                         font = "bold",
@@ -518,7 +518,7 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                 expand = true, align_h = "center", align_v = "center",
             },
             gui.Label {
-                label = S("ERROR: The node at @1 is not a phonograph.", core.pos_to_string(ctx.pos)),
+                label = S("ERROR: @1", S("The node at @1 is not a phonograph.", core.pos_to_string(ctx.pos))),
                 expand = true, align_h = "center", align_v = "center",
             },
             gui.ButtonExit {

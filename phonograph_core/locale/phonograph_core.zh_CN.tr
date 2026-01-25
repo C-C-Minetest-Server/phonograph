@@ -1,9 +1,13 @@
 # textdomain: phonograph_core
 
 ##[ src/functions.lua ]##
+mono=单声道
+left=左
+right=右
+channel #@1=第@1声道
 Connected Phonograph Speaker: @1 on @2 at volume @3%=
 Playing: @1=正在播放：@1
-Volume: @1%=
+Volume: @1%=音量：@1%
 Invalid soundtrack=无效的音轨
 
 ##[ src/functions.lua ]##
@@ -18,25 +22,40 @@ Phonograph=留声机
 
 ##[ src/functions.lua ]##
 ##[ src/node.lua ]##
-Disconnected Phonograph Speaker=
+Disconnected Phonograph Speaker=未连接的留声机扬声器
 Idle Phonograph=闲置的留声机
 
 ##[ src/gui.lua ]##
 Volume:=音量：
+Error: @1=错误：@1
 Select an album to start exploring the universe of songs.=探寻音乐的世界，从选择专辑开始。
-ERROR: Album @1 not found.=错误：找不到专辑 @1
+You do not have permission to configure this phonograph.=您没有权限配置此留声机。
+Speaker Position=扬声器位置
+Channel=声道
+Volume=音量
+Disconnect=断开连线
+No connected speakers. Punch a speaker and then punch the controller to connect it.=无已连结的扬声器。击打扬声器后击打控制器以进行连结。
+Connected Speakers=已连结的扬声器
+This controller integrates a speaker in itself. Use a phonograph controller for multiple speakers.=此控制器内置扬声器。如需连接多个扬声器，请使用留声机控制器。
+Digiline Channel=信纜频道
+Confirm=确定
+Back=返回
+Album @1 not found.=找不到专辑 @1
 No descriptions given.=没有描述。
-ERROR: Song @1 not found.=错误：找不到音轨 @1
+Song @1 not found.=找不到音轨 @1
 This song comes with @1 audio.=本音轨附有@1内容。
 stereo=双声道
 @1-channel=@1声道
 No license information given.=无版权资讯。
+Song ID: @1=音轨ID：@1
 Downloading @1=正在下载@1
 Downloading @1 songs=正在下载@1条音轨
 Stop=停止
 Play=播放
-ERROR: The node at @1 is not a phonograph.=错误：位于 @1 的方块并非留声机。
+ERROR: @1=错误：@1
+The node at @1 is not a phonograph.=位于 @1 的方块并非留声机。
 Exit=离开
+Config=设定
 
 ##[ src/gui.lua ]##
 ##[ src/licenses.lua ]##
@@ -46,21 +65,17 @@ Unknown artist=未知的艺人
 This work by @1 is marked with CC0 1.0. To view a copy of this license, visit @2=
 This work by @1 is licensed under @2. To view a copy of this license, visit @3=
 
-##[ src/messages.lua ]##
-Mono=
-Left=
-Right=
-
 ##[ src/node.lua ]##
-Channel to play (mono, left, right)=
-Volume (0 < volume <@= 100)%=
-Phonograph Controller=
-Phonograph Speaker=
-Punch a phonograph controller to connect this speaker.=
-Invalid channel ID!=
-Volume not supplied or out of range!=
-Successfully connected @1 to @2 on channel #@3 at volume @4%=
+Channel to play (mono, left, right)=播放的声道（mono、left、right）
+Volume (0 < volume <@= 100)%=音量(0 < 音量 <@= 100)%
+Phonograph Controller=留声机控制器
+Phonograph Speaker=留声机扬声器
+Punch a phonograph controller to connect this speaker.=击打一个留声机控制器以连结此扬声器。
+Not a phonograph controller, cancelling.=被击打的方块非留声机控制器，取消操作。
+Invalid channel ID!=无效的声道ID！
+Volume not supplied or out of range!=音量超出允许的范围！
+Successfully connected @1 to @2 on @3 at volume @4%=成功将@1连接至@2（声道：@3；音量：@4）。
 
 ##[ src/teacher.lua ]##
-The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=
-Right-click a Phonograph to set its soundtrack. After selecting the soundtrack from the left panels, press "Play" to start the track.=
+The Phonograph plays music to players around it. When the player approaches it, the sound is played. When the player leaves, the sound ceases.=留声机向周围的玩家播放音乐。当玩家靠近时，声音会播放。当玩家离开时，声音会停止。
+Right-click a Phonograph to set its soundtrack. After selecting the soundtrack from the left panels, press "Play" to start the track.=右键点击留声机以设定其音轨。从左侧面板中选择音轨后，按下「播放」以开始播放音轨。
