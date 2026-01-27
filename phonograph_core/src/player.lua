@@ -105,10 +105,7 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
         channels_to_send[#channels_to_send + 1] = k
     end
 
-    if ptable[controller_pos_hash] and (
-            meta_curr_song ~= ptable[controller_pos_hash].curr_song or
-            volume ~= ptable[controller_pos_hash].volume
-        ) then
+    if ptable[controller_pos_hash] and meta_curr_song ~= ptable[controller_pos_hash].curr_song then
         fade_controller_for_player(ptable, controller_pos_hash)
         if not song then
             logger:action("Phonograph at %s is playing %s but it is not avaliable, " ..
@@ -126,6 +123,30 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
         else
             ptable[controller_pos_hash] = nil
         end
+    elseif ptable[controller_pos_hash] and volume ~= ptable[controller_pos_hash].volume then
+        -- Keep some distance between frequent volume updates
+        -- So old ones doesn't override new ones
+        local now = os.time()
+        local volume_last_update = ptable[controller_pos_hash].volume_last_update
+        if not volume_last_update or now - volume_last_update >= 1 then
+            ptable[controller_pos_hash].volume_last_update = now
+            return
+        end
+
+        logger:action("Phonograph at %s volume changed to %s%%, updating audio for %s",
+            PS(controller_pos), volume, pname)
+        for _, data in ipairs(connected_speakers) do
+            local speaker_pos = data[1]
+            local speaker_pos_hash = core.hash_node_position(speaker_pos)
+            local handle = ptable[controller_pos_hash].speakers[speaker_pos_hash]
+            if handle then
+                local target_volume = data[3] * volume / 10000
+                local original_volume = data[3] * ptable[controller_pos_hash].volume / 10000
+                local delta_volume = math.abs(target_volume - original_volume)
+                core.sound_fade(handle, delta_volume, target_volume) -- Called fade but can also increase
+            end
+        end
+        ptable[controller_pos_hash].volume = volume
     elseif not ptable[controller_pos_hash]
         and vector_distance(ppos, controller_pos) <= phonograph.START_HEARING_DISTANCE then
         if song then
