@@ -24,20 +24,27 @@ local logger = phonograph.internal.logger:sublogger("node")
 local S = phonograph.internal.S
 local FS = function(...) return core.formspec_escape(S(...)) end
 
-local dig_groups = { oddly_breakable_by_hand = 3 } -- A must-work group (cf. Void game)
+local dig_groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
 local sounds = nil
+local diamond_item, gold_item, steel_item = nil, nil, nil
 
-if core.get_modpath("default") then
-    -- Use Minetest Game groups
-    logger:action("Using Minetest Game node definitions and crafting recipies.")
-    dig_groups = { choppy = 2, oddly_breakable_by_hand = 2, flammable = 2 }
-    sounds = default.node_sound_wood_defaults()
+if core.get_modpath("xcompat") then
+    sounds = xcompat.sounds.node_sound_wood_defaults()
+    diamond_item = core.registered_items[xcompat.materials.diamond] and xcompat.materials.diamond or nil
+    gold_item = core.registered_items[xcompat.materials.gold_ingot] and xcompat.materials.gold_ingot or nil
+    steel_item = core.registered_items[xcompat.materials.steel_ingot] and xcompat.materials.steel_ingot or nil
+end
 
+if core.get_modpath("mcl_core") then
+    dig_groups = { handy = 1, axey = 1, flammable = 3, wood = 1, deco_block = 1 }
+end
+
+if diamond_item and gold_item and steel_item then
     core.register_craft({
         output = "phonograph:phonograph",
         recipe = {
             { "group:wood", "group:wood",      "group:wood" },
-            { "group:wood", "default:diamond", "group:wood" },
+            { "group:wood", diamond_item,      "group:wood" },
             { "group:wood", "group:wood",      "group:wood" },
         }
     })
@@ -45,40 +52,16 @@ if core.get_modpath("default") then
     core.register_craft({
         type = "shapeless",
         output = "phonograph:phonograph_controller",
-        recipe = { "phonograph:phonograph", "default:gold_ingot" },
+        recipe = { "phonograph:phonograph", gold_item },
     })
 
     core.register_craft({
         type = "shapeless",
         output = "phonograph:phonograph_speaker",
-        recipe = { "phonograph:phonograph", "default:steel_ingot" },
+        recipe = { "phonograph:phonograph", steel_item },
     })
-elseif core.get_modpath("hades_core") and core.get_modpath("hades_sounds") then
-    -- Use Hades Revisited groups
-    logger:action("`Using Hades Revisited node definitions and crafting recipies.")
-    dig_groups = { choppy = 3, oddly_breakable_by_hand = 2, flammable = 3 }
-    sounds = hades_sounds.node_sound_wood_defaults()
-
-    core.register_craft({
-        output = "phonograph:phonograph",
-        recipe = {
-            { "group:wood", "group:wood",         "group:wood" },
-            { "group:wood", "hades_core:diamond", "group:wood" },
-            { "group:wood", "group:wood",         "group:wood" },
-        }
-    })
-
-    core.register_craft({
-        type = "shapeless",
-        output = "phonograph:phonograph_controller",
-        recipe = { "phonograph:phonograph", "hades_core:gold_ingot" },
-    })
-
-    core.register_craft({
-        type = "shapeless",
-        output = "phonograph:phonograph_speaker",
-        recipe = { "phonograph:phonograph", "hades_core:steel_ingot" },
-    })
+else
+    logger:warning("No crafting material found, skipping crafting recipes.")
 end
 
 -- Common

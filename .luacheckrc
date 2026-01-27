@@ -18,7 +18,7 @@ read_globals = {
 
     "vector",
 
-    "logging", "flow", "default", "hades_sounds",
+    "logging", "flow", "xcompat",
     "teacher", "modlib", "background_music",
     "digilines",
 
