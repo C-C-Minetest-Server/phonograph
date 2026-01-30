@@ -310,12 +310,22 @@ local get_page_content = {
         end
 
         local search_results_gui = {}
-        search_results_gui[#search_results_gui + 1] = gui.Label {
-            label = S("Search results of \"@1\"", query),
-            expand = true, align_h = "left",
-            style = {
-                font = "bold",
-                font_size = "*1.5"
+        search_results_gui[#search_results_gui + 1] = gui.HBox {
+            gui.Label {
+                label = S("Search results of \"@1\"", query),
+                expand = true, align_h = "left",
+                style = {
+                    font = "bold",
+                    font_size = "*1.5"
+                },
+            },
+            gui.Button {
+                label = S("Back"),
+                w = 1.5, h = 0.5,
+                on_event = function(_, ectx)
+                    ectx.page_override = nil
+                    return true
+                end,
             },
         }
 
