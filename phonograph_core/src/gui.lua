@@ -300,7 +300,7 @@ local get_page_content = {
         if type(query) ~= "string" or query:trim() == "" then
             return error_page(S("Invalid search query."))
         end
-        local normalized_query = query:lower()
+        local normalized_query = query:trim():lower()
 
         -- Get player's language so we can search in their local language
         local player_info = core.get_player_information(player:get_player_name())
@@ -311,7 +311,7 @@ local get_page_content = {
 
         local search_results_gui = {}
         search_results_gui[#search_results_gui + 1] = gui.Label {
-            label = S("Search results of @1", query),
+            label = S("Search results of \"@1\"", query),
             expand = true, align_h = "left",
             style = {
                 font = "bold",
@@ -876,8 +876,8 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                         w = 9, h = 1, max_h = 1,
                         expand = true, align_h = "left",
                         on_key_enter = function(_, ectx)
-                            local query = tostring(ectx.form.search_field or ""):trim():lower()
-                            if query == "" then
+                            local query = ectx.form.search_field or ""
+                            if query:trim() == "" then
                                 if ectx.page_override == "search" then
                                     ectx.page_override = nil
                                     return true
@@ -893,8 +893,8 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
                         w = 2, max_w = 2, h = 1, max_h = 1,
                         label = S("Search"),
                         on_event = function(_, ectx)
-                            local query = tostring(ectx.form.search_field or ""):trim():lower()
-                            if query == "" then
+                            local query = ectx.form.search_field or ""
+                            if query:trim() == "" then
                                 if ectx.page_override == "search" then
                                     ectx.page_override = nil
                                     return true
