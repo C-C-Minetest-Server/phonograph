@@ -249,6 +249,14 @@ local get_page_content = {
                         w = 3, max_w = 3, h = 0.7, max_h = 0.7,
                         name = "config_digiline_channel",
                         default = core.get_meta(ctx.pos):get_string("channel") or "",
+                        on_key_enter = function(eplayer, ectx)
+                            if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
+                            if type(ectx.form.config_digiline_channel) == "string" then
+                                ectx.form.config_digiline_channel = ectx.form.config_digiline_channel:trim()
+                                core.get_meta(ectx.pos):set_string("channel", ectx.form.config_digiline_channel)
+                                return true
+                            end
+                        end,
                     },
                     gui.Button {
                         w = 1.5, max_w = 1.5, h = 0.7, max_h = 0.7,
@@ -256,6 +264,7 @@ local get_page_content = {
                         on_event = function(eplayer, ectx)
                             if not phonograph.check_interact_privs(eplayer, ectx.pos) then return true end
                             if type(ectx.form.config_digiline_channel) == "string" then
+                                ectx.form.config_digiline_channel = ectx.form.config_digiline_channel:trim()
                                 core.get_meta(ectx.pos):set_string("channel", ectx.form.config_digiline_channel)
                                 return true
                             end
