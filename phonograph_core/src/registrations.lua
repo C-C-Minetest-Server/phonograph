@@ -21,11 +21,18 @@
 
 local logger = phonograph.internal.logger:sublogger("registrations")
 
+phonograph.registered_album_sets = {}
 phonograph.registered_albums = {}
 phonograph.registered_songs = {}
 phonograph.songs_in_album = {}
 
 function phonograph.validate_spec(name, desc, spec)
+    logger:assert(type(name) == "string",
+        "Validation of album failed: invalid name type (\"string\" expected, got \"%s\")",
+        type(name))
+    logger:assert(name:sub(0, 2) ~= "__",
+        "Validation of album %s failed: invalid name (album names starting with \"__\" are reserved)",
+        name)
     logger:assert(type(spec) == "table",
         "Validation of song %s spec \"%s\" failed: invalid type (\"table\" expected, got \"%s\")",
         name, desc, type(spec))
@@ -90,6 +97,12 @@ end
 -- Validation of song definitions
 -- Mainly checks the SimpleSoundSpec (def.spec)
 function phonograph.validate_song(name, def)
+    logger:assert(type(name) == "string",
+        "Validation of song failed: invalid name type (\"string\" expected, got \"%s\")",
+        type(name))
+    logger:assert(name:sub(0, 2) ~= "__",
+        "Validation of song %s failed: invalid name (song names starting with \"__\" are reserved)",
+        name)
     logger:assert(type(def) == "table",
         "Validation of song %s failed: invalid definition table type (\"table\" expected, got \"%s\")",
         name, type(def))
@@ -157,10 +170,49 @@ function phonograph.register_album(name, def)
     })
 end
 
+-- Register an album set
+-- Drop-down menu of a set of albums, cannot be nested
+function phonograph.register_album_set(name, def)
+    def.album_list = {}
+    def.cover_size = def.cover_size or 16
+    phonograph.registered_album_sets[name] = def
+end
+
 phonograph.registered_albums_keys = {}
+phonograph.registered_album_sets_keys = {}
+phonograph.registered_display_entries_keys = {}
 core.register_on_mods_loaded(function()
-    for key, _ in pairs(phonograph.registered_albums) do
+    for key, def in pairs(phonograph.registered_albums) do
         phonograph.registered_albums_keys[#phonograph.registered_albums_keys + 1] = key
+
+        if def.album_set then
+            logger:assert(phonograph.registered_album_sets[def.album_set],
+                "Album %s references unknown album set %s",
+                key, def.album_set)
+            table.insert(phonograph.registered_album_sets[def.album_set].album_list, key)
+        else
+            phonograph.registered_display_entries_keys[#phonograph.registered_display_entries_keys + 1] = key
+        end
     end
     table.sort(phonograph.registered_albums_keys)
+
+    for key, def in pairs(phonograph.registered_album_sets) do
+        phonograph.registered_album_sets_keys[#phonograph.registered_album_sets_keys + 1] = key
+        phonograph.registered_display_entries_keys[#phonograph.registered_display_entries_keys + 1] =
+            "__album_set:" .. key
+        table.sort(def.album_list)
+    end
+    table.sort(phonograph.registered_album_sets_keys)
+
+    table.sort(phonograph.registered_display_entries_keys, function(a, b)
+        if a:sub(0, 12) == "__album_set:" then
+            a = a:sub(13)
+        end
+
+        if b:sub(0, 12) == "__album_set:" then
+            b = b:sub(13)
+        end
+
+        return a < b
+    end)
 end)

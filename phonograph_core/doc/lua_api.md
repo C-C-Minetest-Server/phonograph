@@ -1,5 +1,17 @@
 # Phonograph Developer Documentation
 
+## Album set registeration
+
+Album sets appear as a drop-down menu of albums.
+
+```lua
+phonograph.register_album_set("phonograph_album_white:example", {
+    title = "White Series",
+    cover = "some_cover_image.png",
+    cover_size = 16, -- in px, default: 16
+})
+```
+
 ## Album registeration
 
 ```lua
@@ -11,6 +23,7 @@ local album = phonograph.register_album("phonograph_album_white:album_white", {
     long_description = "Oh, so relaxing! A bug-free world starts from a test case.",
     cover = "phonograph_album_white_cover.png",
     artist = "Dave Null",
+    album_set = "phonograph_album_white:example", -- If any, default: nil
 })
 ```
 

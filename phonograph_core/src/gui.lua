@@ -456,7 +456,7 @@ local get_page_content = {
                     expand = true, align_h = "left",
                     label = table.concat({
                         (song.title or S("Untitled")) .. " - " ..
-                            (song.artist or (album and album.artist) or S("Unknown artist")),
+                        (song.artist or (album and album.artist) or S("Unknown artist")),
                         S("In album: @1", album and (album.title or S("Untitled")) or S("Unknown album")),
                     }, "\n")
                 },
@@ -528,6 +528,11 @@ local get_page_content = {
         local album = phonograph.registered_albums[song.album]
         if not album then
             return error_page(S("Album @1 not found.", ctx.selected_album))
+        end
+
+        if album.album_set and not ctx.selected_album_set then
+            ctx.selected_album_set = {}
+            ctx.selected_album_set[album.album_set] = true
         end
 
         local meta = core.get_meta(ctx.pos)
@@ -642,31 +647,112 @@ local get_page_content = {
 
 local generate_albums_list = function(_, ctx)
     local button_list = {}
-    for _, name in pairs(phonograph.registered_albums_keys) do
-        local def = phonograph.registered_albums[name]
-        local title = def.short_title or def.title or S("Untitled")
-        if ctx.selected_album == name then
-            title = core.get_color_escape_sequence("yellow") .. title
-        elseif ctx.curr_album == name then
-            title = core.get_color_escape_sequence("orange") .. title
+    ctx.selected_album_set = ctx.selected_album_set or {}
+    for _, name in pairs(phonograph.registered_display_entries_keys) do
+        if name:sub(0, 12) == "__album_set:" then
+            local album_set_name = name:sub(13)
+            local album_set_def = phonograph.registered_album_sets[album_set_name]
+            local is_selected = ctx.selected_album_set[album_set_name] == true
+            local album_set_title = album_set_def.short_title or album_set_def.title or S("Untitled")
+            local album_set_cover = (album_set_def.cover or "phonograph_node_temp_ok.png") ..
+                (is_selected
+                    and "^(phonograph_dropdown_overlay.png^[opacity:200^[resize:" .. album_set_def.cover_size .. "x" ..
+                    album_set_def.cover_size .. "^[transformR180)"
+                    or "^(phonograph_dropdown_overlay.png^[opacity:200^[resize:" .. album_set_def.cover_size .. "x" ..
+                    album_set_def.cover_size .. ")")
+            local album_set_title_colorize = ""
+            local album_set_buttons = nil
+
+            if is_selected then
+                album_set_buttons = {}
+                for _, album_name in ipairs(album_set_def.album_list) do
+                    local def = phonograph.registered_albums[album_name]
+                    local title = def.short_title or def.title or S("Untitled")
+                    if ctx.selected_album == album_name then
+                        title = core.get_color_escape_sequence("yellow") .. title
+                        album_set_title_colorize = "yellow"
+                    elseif ctx.curr_album == album_name then
+                        title = core.get_color_escape_sequence("orange") .. title
+                        if album_set_title_colorize ~= "yellow" then
+                            album_set_title_colorize = "orange"
+                        end
+                    end
+                    album_set_buttons[#album_set_buttons + 1] = gui.HBox {
+                        gui.Image {
+                            w = 1, h = 1,
+                            texture_name = def.cover or "phonograph_node_temp_ok.png",
+                            align_h = "left",
+                        },
+                        gui.Button {
+                            w = 3.75,
+                            label = title,
+                            on_event = function(_, ectx)
+                                ectx.selected_album = album_name
+                                ectx.selected_song = nil
+                                ectx.page_override = nil
+                                return true
+                            end,
+                        },
+                    }
+                end
+            else
+                local curr_song_def = phonograph.registered_songs[ctx.curr_song]
+                if curr_song_def and curr_song_def.album and
+                    phonograph.registered_albums[curr_song_def.album] and
+                    phonograph.registered_albums[curr_song_def.album].album_set == album_set_name then
+                    album_set_title_colorize = "orange"
+                end
+            end
+
+            button_list[#button_list + 1] = gui.HBox {
+                gui.Image {
+                    w = 1, h = 1,
+                    texture_name = album_set_cover,
+                    align_h = "left",
+                },
+                gui.Button {
+                    w = 4,
+                    label = (album_set_title_colorize
+                        and core.get_color_escape_sequence(album_set_title_colorize) or "") .. album_set_title,
+                    on_event = function(_, ectx)
+                        ectx.selected_album_set[album_set_name] = not ectx.selected_album_set[album_set_name] or nil
+                        return true
+                    end,
+                },
+            }
+
+            if album_set_buttons then
+                button_list[#button_list + 1] = gui.HBox {
+                    gui.Box { w = 0.05, h = 0.05, color = "grey" },
+                    gui.VBox(album_set_buttons),
+                }
+            end
+        else
+            local def = phonograph.registered_albums[name]
+            local title = def.short_title or def.title or S("Untitled")
+            if ctx.selected_album == name then
+                title = core.get_color_escape_sequence("yellow") .. title
+            elseif ctx.curr_album == name then
+                title = core.get_color_escape_sequence("orange") .. title
+            end
+            button_list[#button_list + 1] = gui.HBox {
+                gui.Image {
+                    w = 1, h = 1,
+                    texture_name = def.cover or "phonograph_node_temp_ok.png",
+                    align_h = "left",
+                },
+                gui.Button {
+                    w = 4,
+                    label = title,
+                    on_event = function(_, ectx)
+                        ectx.selected_album = name
+                        ectx.selected_song = nil
+                        ectx.page_override = nil
+                        return true
+                    end,
+                },
+            }
         end
-        button_list[#button_list + 1] = gui.HBox {
-            gui.Image {
-                w = 1, h = 1,
-                texture_name = def.cover or "phonograph_node_temp_ok.png",
-                align_h = "left",
-            },
-            gui.Button {
-                w = 4,
-                label = title,
-                on_event = function(_, ectx)
-                    ectx.selected_album = name
-                    ectx.selected_song = nil
-                    ectx.page_override = nil
-                    return true
-                end,
-            },
-        }
     end
     button_list.name = "svb_album_list"
     button_list.w = 5.3
