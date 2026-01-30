@@ -140,8 +140,8 @@ local function process_one_phonograph(controller_pos, controller_pos_hash, playe
             local speaker_pos_hash = core.hash_node_position(speaker_pos)
             local handle = ptable[controller_pos_hash].speakers[speaker_pos_hash]
             if handle then
-                local target_volume = data[3] * volume / 10000
-                local original_volume = data[3] * ptable[controller_pos_hash].volume / 10000
+                local target_volume = (data[3] or 100) * volume / 10000
+                local original_volume = (data[3] or 100) * ptable[controller_pos_hash].volume / 10000
                 local delta_volume = math.abs(target_volume - original_volume)
                 core.sound_fade(handle, delta_volume, target_volume) -- Called fade but can also increase
             end
