@@ -286,6 +286,193 @@ local get_page_content = {
             },
         }
     end,
+    search = function(player, ctx)
+        local query = ctx.search_query
+        if type(query) ~= "string" or query:trim() == "" then
+            return error_page(S("Invalid search query."))
+        end
+        local normalized_query = query:lower()
+
+        -- Get player's language so we can search in their local language
+        local player_info = core.get_player_information(player:get_player_name())
+        local player_lang = player_info and player_info.lang_code or nil
+        if player_lang == "en" then
+            player_lang = nil
+        end
+
+        local search_results_gui = {}
+        search_results_gui[#search_results_gui + 1] = gui.Label {
+            label = S("Search results of @1", query),
+            expand = true, align_h = "left",
+            style = {
+                font = "bold",
+                font_size = "*1.5"
+            },
+        }
+
+        -- Search in albums
+        local albums_matching = {}
+        for album_name, album in pairs(phonograph.registered_albums) do
+            local haystacks = {
+                album_name,
+                album.title and core.get_translated_string("en", album.title):lower() or nil,
+                album.artist and core.get_translated_string("en", album.artist):lower() or nil,
+                album.short_title and core.get_translated_string("en", album.short_title):lower() or nil,
+                album.short_description and core.get_translated_string("en", album.short_description):lower() or nil,
+                album.long_description and core.get_translated_string("en", album.long_description):lower() or nil,
+            }
+            if player_lang then
+                haystacks[#haystacks + 1] = album.title and
+                    core.get_translated_string(player_lang, album.title):lower() or nil
+                haystacks[#haystacks + 1] = album.artist and
+                    core.get_translated_string(player_lang, album.artist):lower() or nil
+                haystacks[#haystacks + 1] = album.short_title and
+                    core.get_translated_string(player_lang, album.short_title):lower() or nil
+                haystacks[#haystacks + 1] = album.short_description and
+                    core.get_translated_string(player_lang, album.short_description):lower() or nil
+                haystacks[#haystacks + 1] = album.long_description and
+                    core.get_translated_string(player_lang, album.long_description):lower() or nil
+            end
+
+            for _, haystack in ipairs(haystacks) do
+                if haystack and haystack:find(normalized_query, 1, true) then
+                    albums_matching[#albums_matching + 1] = album_name
+                    break
+                end
+            end
+        end
+        table.sort(albums_matching)
+
+        -- Add albums display
+        search_results_gui[#search_results_gui + 1] = gui.Label {
+            label = S("Albums"),
+            expand = true, align_h = "left",
+            style = {
+                font = "bold",
+                font_size = "*1.3"
+            },
+        }
+        search_results_gui[#search_results_gui + 1] = gui.Label {
+            label = S("@1 results found.", #albums_matching),
+            expand = true, align_h = "left",
+        }
+        for _, album_name in ipairs(albums_matching) do
+            local album = phonograph.registered_albums[album_name]
+
+            search_results_gui[#search_results_gui + 1] = gui.HBox {
+                gui.Image {
+                    w = 1, h = 1,
+                    texture_name = album.cover or "phonograph_node_temp_ok.png",
+                    align_h = "left",
+                },
+                gui.Label {
+                    w = 5, max_w = 5, h = 1, max_h = 1,
+                    expand = true, align_h = "left",
+                    label = table.concat({
+                        album.title or S("Untitled"),
+                        album.artist or S("Unknown artist"),
+                    }, "\n")
+                },
+                gui.Button {
+                    w = 1.5, h = 1,
+                    label = S("Go"),
+                    on_event = function(_, ectx)
+                        ectx.selected_album = album_name
+                        ectx.selected_song = nil
+                        ectx.page_override = nil
+                        return true
+                    end,
+                }
+            }
+        end
+
+        -- Search in songs
+        local songs_matching = {}
+        for song_name, song in pairs(phonograph.registered_songs) do
+            local haystacks = {
+                song_name,
+                song.title and core.get_translated_string("en", song.title):lower() or nil,
+                song.artist and core.get_translated_string("en", song.artist):lower() or nil,
+                song.short_title and core.get_translated_string("en", song.short_title):lower() or nil,
+                song.short_description and core.get_translated_string("en", song.short_description):lower() or nil,
+                song.long_description and core.get_translated_string("en", song.long_description):lower() or nil,
+            }
+            if player_lang then
+                haystacks[#haystacks + 1] = song.title and
+                    core.get_translated_string(player_lang, song.title):lower() or nil
+                haystacks[#haystacks + 1] = song.artist and
+                    core.get_translated_string(player_lang, song.artist):lower() or nil
+                haystacks[#haystacks + 1] = song.short_title and
+                    core.get_translated_string(player_lang, song.short_title):lower() or nil
+                haystacks[#haystacks + 1] = song.short_description and
+                    core.get_translated_string(player_lang, song.short_description):lower() or nil
+                haystacks[#haystacks + 1] = song.long_description and
+                    core.get_translated_string(player_lang, song.long_description):lower() or nil
+            end
+
+            for _, haystack in ipairs(haystacks) do
+                if haystack and haystack:find(normalized_query, 1, true) then
+                    songs_matching[#songs_matching + 1] = song_name
+                    break
+                end
+            end
+        end
+        table.sort(songs_matching)
+
+        -- Add songs display
+        search_results_gui[#search_results_gui + 1] = gui.Label {
+            label = S("Songs"),
+            expand = true, align_h = "left",
+            style = {
+                font = "bold",
+                font_size = "*1.3"
+            },
+        }
+        search_results_gui[#search_results_gui + 1] = gui.Label {
+            label = S("@1 results found.", #songs_matching),
+            expand = true, align_h = "left",
+        }
+        for _, song_name in ipairs(songs_matching) do
+            local song = phonograph.registered_songs[song_name]
+            local album = phonograph.registered_albums[song.album]
+
+            search_results_gui[#search_results_gui + 1] = gui.HBox {
+                gui.Image {
+                    w = 1, h = 1,
+                    texture_name = album and album.cover or "phonograph_node_temp_ok.png",
+                    align_h = "left",
+                },
+                gui.Label {
+                    w = 5, max_w = 5, h = 1, max_h = 1,
+                    expand = true, align_h = "left",
+                    label = table.concat({
+                        (song.title or S("Untitled")) .. " - " ..
+                            (song.artist or (album and album.artist) or S("Unknown artist")),
+                        S("In album: @1", album and (album.title or S("Untitled")) or S("Unknown album")),
+                    }, "\n")
+                },
+                gui.Button {
+                    w = 1.5, h = 1,
+                    label = S("Go"),
+                    on_event = function(_, ectx)
+                        ectx.selected_album = song.album
+                        ectx.selected_song = song_name
+                        ectx.page_override = nil
+                        return true
+                    end,
+                }
+            }
+        end
+
+        return gui.VBox {
+            min_h = 10, min_w = 9,
+            gui.ScrollableVBox {
+                name = "svbox_page_search",
+                min_w = 8.25, expand = true,
+                unpack(search_results_gui),
+            },
+        }
+    end,
 
     -- Album and Songs
     album = function(_, ctx)
@@ -474,7 +661,7 @@ local generate_albums_list = function(_, ctx)
     end
     button_list.name = "svb_album_list"
     button_list.w = 5.3
-    button_list.h = 9
+    button_list.h = 8.5
     return gui.ScrollableVBox(button_list)
 end
 
@@ -500,7 +687,7 @@ local generate_songs_list = function(_, ctx)
     end
     button_list.name = "svb_songs_list"
     button_list.w = 4.5
-    button_list.h = 9
+    button_list.h = 8.5
     return gui.ScrollableVBox(button_list)
 end
 
@@ -582,8 +769,50 @@ phonograph.node_gui = flow.make_gui(function(player, ctx)
         gui.Box { w = 0.05, h = 0.05, color = "grey" },
 
         gui.HBox {
-            generate_albums_list(player, ctx),
-            generate_songs_list(player, ctx),
+            gui.VBox {
+                gui.HBox {
+                    expand = true, align_v = "top",
+                    generate_albums_list(player, ctx),
+                    generate_songs_list(player, ctx),
+                },
+                gui.HBox {
+                    gui.Field {
+                        name = "search_field",
+                        w = 9, h = 1, max_h = 1,
+                        expand = true, align_h = "left",
+                        on_key_enter = function(_, ectx)
+                            local query = tostring(ectx.form.search_field or ""):trim():lower()
+                            if query == "" then
+                                if ectx.page_override == "search" then
+                                    ectx.page_override = nil
+                                    return true
+                                end
+                                return false
+                            end
+                            ectx.search_query = query
+                            ectx.page_override = "search"
+                            return true
+                        end,
+                    },
+                    gui.Button {
+                        w = 2, max_w = 2, h = 1, max_h = 1,
+                        label = S("Search"),
+                        on_event = function(_, ectx)
+                            local query = tostring(ectx.form.search_field or ""):trim():lower()
+                            if query == "" then
+                                if ectx.page_override == "search" then
+                                    ectx.page_override = nil
+                                    return true
+                                end
+                                return false
+                            end
+                            ectx.search_query = query
+                            ectx.page_override = "search"
+                            return true
+                        end,
+                    },
+                },
+            },
             tab_content
         }
     }

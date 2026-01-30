@@ -40,6 +40,14 @@ This controller integrates a speaker in itself. Use a phonograph controller for 
 Digiline Channel=
 Confirm=
 Back=
+Invalid search query.=
+Search results of @1=
+Albums=
+@1 results found.=
+Go=
+Songs=
+In album: @1=
+Unknown album=
 Album @1 not found.=
 No descriptions given.=
 Song @1 not found.=
@@ -56,6 +64,7 @@ ERROR: @1=
 The node at @1 is not a phonograph.=
 Exit=
 Config=
+Search=
 
 ##[ src/gui.lua ]##
 ##[ src/licenses.lua ]##

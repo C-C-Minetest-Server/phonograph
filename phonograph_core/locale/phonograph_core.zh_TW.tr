@@ -40,6 +40,14 @@ This controller integrates a speaker in itself. Use a phonograph controller for 
 Digiline Channel=信纜頻道
 Confirm=確定
 Back=返回
+Invalid search query.=
+Search results of @1=
+Albums=
+@1 results found.=
+Go=
+Songs=
+In album: @1=
+Unknown album=
 Album @1 not found.=找不到專輯 @1
 No descriptions given.=沒有描述。
 Song @1 not found.=找不到音軌 @1
@@ -56,6 +64,7 @@ ERROR: @1=錯誤：@1
 The node at @1 is not a phonograph.=位於 @1 的方塊並非留聲機。
 Exit=離開
 Config=設定
+Search=
 
 ##[ src/gui.lua ]##
 ##[ src/licenses.lua ]##
