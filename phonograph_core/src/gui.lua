@@ -1,6 +1,6 @@
 -- phonograph/phonograph_core/src/gui.lua
 -- GUI of phonograph node
--- depends: functions, registrations
+-- depends: functions, search, registrations
 --[[
     Phonograph: Play music from albums
     Copyright (C) 2024  1F616EMO
@@ -300,14 +300,10 @@ local get_page_content = {
         if type(query) ~= "string" or query:trim() == "" then
             return error_page(S("Invalid search query."))
         end
-        local normalized_query = query:trim():lower()
 
         -- Get player's language so we can search in their local language
         local player_info = core.get_player_information(player:get_player_name())
         local player_lang = player_info and player_info.lang_code or nil
-        if player_lang == "en" then
-            player_lang = nil
-        end
 
         local search_results_gui = {}
         search_results_gui[#search_results_gui + 1] = gui.HBox {
@@ -330,37 +326,7 @@ local get_page_content = {
         }
 
         -- Search in albums
-        local albums_matching = {}
-        for album_name, album in pairs(phonograph.registered_albums) do
-            local haystacks = {
-                album_name,
-                album.title and core.get_translated_string("en", album.title):lower() or nil,
-                album.artist and core.get_translated_string("en", album.artist):lower() or nil,
-                album.short_title and core.get_translated_string("en", album.short_title):lower() or nil,
-                album.short_description and core.get_translated_string("en", album.short_description):lower() or nil,
-                album.long_description and core.get_translated_string("en", album.long_description):lower() or nil,
-            }
-            if player_lang then
-                haystacks[#haystacks + 1] = album.title and
-                    core.get_translated_string(player_lang, album.title):lower() or nil
-                haystacks[#haystacks + 1] = album.artist and
-                    core.get_translated_string(player_lang, album.artist):lower() or nil
-                haystacks[#haystacks + 1] = album.short_title and
-                    core.get_translated_string(player_lang, album.short_title):lower() or nil
-                haystacks[#haystacks + 1] = album.short_description and
-                    core.get_translated_string(player_lang, album.short_description):lower() or nil
-                haystacks[#haystacks + 1] = album.long_description and
-                    core.get_translated_string(player_lang, album.long_description):lower() or nil
-            end
-
-            for _, haystack in ipairs(haystacks) do
-                if haystack and haystack:find(normalized_query, 1, true) then
-                    albums_matching[#albums_matching + 1] = album_name
-                    break
-                end
-            end
-        end
-        table.sort(albums_matching)
+        local albums_matching = phonograph.search_in_albums(query, player_lang)
 
         -- Add albums display
         search_results_gui[#search_results_gui + 1] = gui.Label {
@@ -406,37 +372,7 @@ local get_page_content = {
         end
 
         -- Search in songs
-        local songs_matching = {}
-        for song_name, song in pairs(phonograph.registered_songs) do
-            local haystacks = {
-                song_name,
-                song.title and core.get_translated_string("en", song.title):lower() or nil,
-                song.artist and core.get_translated_string("en", song.artist):lower() or nil,
-                song.short_title and core.get_translated_string("en", song.short_title):lower() or nil,
-                song.short_description and core.get_translated_string("en", song.short_description):lower() or nil,
-                song.long_description and core.get_translated_string("en", song.long_description):lower() or nil,
-            }
-            if player_lang then
-                haystacks[#haystacks + 1] = song.title and
-                    core.get_translated_string(player_lang, song.title):lower() or nil
-                haystacks[#haystacks + 1] = song.artist and
-                    core.get_translated_string(player_lang, song.artist):lower() or nil
-                haystacks[#haystacks + 1] = song.short_title and
-                    core.get_translated_string(player_lang, song.short_title):lower() or nil
-                haystacks[#haystacks + 1] = song.short_description and
-                    core.get_translated_string(player_lang, song.short_description):lower() or nil
-                haystacks[#haystacks + 1] = song.long_description and
-                    core.get_translated_string(player_lang, song.long_description):lower() or nil
-            end
-
-            for _, haystack in ipairs(haystacks) do
-                if haystack and haystack:find(normalized_query, 1, true) then
-                    songs_matching[#songs_matching + 1] = song_name
-                    break
-                end
-            end
-        end
-        table.sort(songs_matching)
+        local songs_matching = phonograph.search_in_songs(query, player_lang)
 
         -- Add songs display
         search_results_gui[#search_results_gui + 1] = gui.Label {

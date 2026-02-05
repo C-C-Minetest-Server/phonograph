@@ -33,7 +33,8 @@ for _, name in ipairs({
     "dynamic",   -- depends: registrations
     "player",    -- depends: functions, settings, dynamic
     "licenses",
-    "gui",       -- depends: functions, registrations
+    "search",
+    "gui",       -- depends: functions, search, registrations
     "node",      -- depends: gui
     "teacher",
 }) do
